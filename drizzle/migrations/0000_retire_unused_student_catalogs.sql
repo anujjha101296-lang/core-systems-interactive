@@ -1,0 +1,17 @@
+ALTER TABLE public.concept_catalog ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lab_catalog ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.question_bank ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.source_registry ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.concept_catalog, public.lab_catalog, public.question_bank, public.source_registry FROM anon, authenticated;
+COMMENT ON TABLE public.concept_catalog IS 'DEPRECATED: public course uses bundled curriculum; not queried by app';
+COMMENT ON TABLE public.lab_catalog IS 'DEPRECATED: public labs use bundled registry; not queried by app';
+COMMENT ON TABLE public.question_bank IS 'DEPRECATED: public worksheet uses bundled questions; not queried by app';
+COMMENT ON TABLE public.source_registry IS 'DEPRECATED: reference links bundled with curriculum';
+COMMENT ON TABLE public.profiles IS 'DEPRECATED: account-free worksheet does not read or write student state';
+COMMENT ON TABLE public.lesson_progress IS 'DEPRECATED: worksheet has no persisted progress';
+COMMENT ON TABLE public.question_attempts IS 'DEPRECATED: worksheet answers are ephemeral';
+COMMENT ON TABLE public.lab_attempts IS 'DEPRECATED: lab state is ephemeral';
+COMMENT ON TABLE public.interview_progress IS 'DEPRECATED: mock scores are not persisted';
+COMMENT ON TABLE public.bookmarks IS 'DEPRECATED: account-free worksheet has no bookmarks';
+COMMENT ON TABLE public.concept_mastery IS 'DEPRECATED: worksheet has no mastery state';
+COMMENT ON TABLE public.activity IS 'DEPRECATED: worksheet has no activity feed';
