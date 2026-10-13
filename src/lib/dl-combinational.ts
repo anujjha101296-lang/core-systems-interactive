@@ -5,7 +5,7 @@ function assertBit(bit: number, name: string): asserts bit is Bit {
   if (bit !== 0 && bit !== 1) throw new RangeError(`${name} must be 0 or 1`);
 }
 function assertWidth(width: number) {
-  if (!Number.isInteger(width) || width < 1 || width > 32) throw new RangeError("width must be an integer from 1 to 32");
+  if (!Number.isInteger(width) || width < 1 || width > 31) throw new RangeError("width must be an integer from 1 to 31");
 }
 export function mux2(a: Bit, b: Bit, sel: Bit): Bit {
   assertBit(a,"a"); assertBit(b,"b"); assertBit(sel,"sel");
