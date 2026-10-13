@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { parseInBase, addFlags, f32Bits, bitsToF32, canonicalSOP, compareBool, MAX_BOOL_VARS, kmapLayout, parseIndexList, kmapSolve, verifyAgainstSpec, productTerm, sumTerm, implCells } from "@/lib/dl-math";
+import { parseInBase, addFlags, f32Bits, bitsToF32, canonicalSOP, compareBool, MAX_BOOL_VARS, kmapLayout, parseIndexList, kmapSolve, verifyAgainstSpec, productTerm, sumTerm, implCells, float32RoundingError, mux, decoder, priorityEncoder, rippleCarryAdd, alu, type AluOpcode } from "@/lib/dl-math";
 
 const Box = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="panel p-5"><div className="eyebrow mb-4">Lab · {title}</div>{children}</div>
@@ -50,6 +50,7 @@ export function Ieee() {
   const [bits, setBits] = useState(f32Bits(-6.5)); const [dec, setDec] = useState("-6.5"); const [hex, setHex] = useState("C0D00000");
   const s = bits >>> 31, E = (bits >>> 23) & 255, f = bits & 0x7fffff; const val = bitsToF32(bits);
   const cls = E === 255 ? (f ? "NaN" : "infinity") : E === 0 ? (f ? "subnormal" : "zero") : "normal";
+  const rErr = float32RoundingError(dec, val);
   return (
     <Box title="IEEE-754 float32">
       <div className="flex flex-wrap gap-2">
@@ -61,7 +62,20 @@ export function Ieee() {
         <Row k="class" v={cls} /><Row k="E / unbiased e" v={cls === "normal" ? `${E} / ${E - 127}` : cls === "subnormal" ? `0 / −126 (no implicit 1)` : String(E)} />
         <Row k="stored value (exact float32)" v={String(val)} />
         <p className="mt-2 font-mono text-xs text-muted-foreground">Decimal input is rounded to nearest-even float32. Out-of-range values become ±∞; NaN payloads are shown but not interpreted.</p>
-        {dec && !isNaN(parseFloat(dec)) && <Row k="rounding error (vs. float64 of your input)" v={String(val - parseFloat(dec))} />}
+        {rErr && (
+          <div className="mt-2 space-y-1">
+            <Row
+              k="quantization error (float32 − input float64)"
+              v={rErr.exact ? "0 (exact in float32)" : (rErr.diff > 0 ? `+${rErr.diff.toExponential(4)}` : rErr.diff.toExponential(4))}
+            />
+            {!rErr.exact && rErr.relDiff !== null && (
+              <Row k="relative quantization error" v={`${(rErr.relDiff * 100).toExponential(3)}%`} />
+            )}
+            <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+              Calculated against JavaScript's 64-bit float parse of the decimal input. Numbers with non-power-of-two denominators repeat infinitely in binary and suffer truncation error.
+            </p>
+          </div>
+        )}
       </div>
     </Box>
   );
@@ -135,6 +149,409 @@ export function KMapLab() {
         <p className="mt-3 font-mono text-sm" aria-live="polite">{ver?.ok ? `✓ Verified: matches the truth table on all ${2 ** n - dcs.length} specified rows (don't-cares free).` : `✗ Mismatch at m${ver && !ver.ok ? ver.row : "?"}`}</p>
         <p className="mt-2 font-mono text-xs text-muted-foreground">Automatic: Quine–McCluskey finds every prime implicant, then an exhaustive search finds every cover with the fewest terms, then fewest literals. This is exact for ≤4 variables; minimality is for two-level form, not total gate count.</p>
       </div>}
+    </Box>
+  );
+}
+
+export function ComboLab() {
+  const [tab, setTab] = useState<"mux" | "adder" | "alu">("mux");
+
+  // Mux / Decoder sub-state
+  const [blockType, setBlockType] = useState<"mux4" | "dec24" | "penc4">("mux4");
+  const [muxData, setMuxData] = useState<[boolean, boolean, boolean, boolean]>([false, true, true, false]);
+  const [muxSel, setMuxSel] = useState<number>(1);
+  const [decIn, setDecIn] = useState<number>(2);
+  const [decEn, setDecEn] = useState<boolean>(true);
+  const [decMinterms, setDecMinterms] = useState<number[]>([1, 2]);
+  const [pencIn, setPencIn] = useState<[boolean, boolean, boolean, boolean]>([false, false, true, false]);
+
+  // Adder sub-state
+  const [adderA, setAdderA] = useState<number>(5);
+  const [adderB, setAdderB] = useState<number>(3);
+  const [adderSub, setAdderSub] = useState<boolean>(false);
+
+  // ALU sub-state
+  const [aluA, setAluA] = useState<number>(9);
+  const [aluB, setAluB] = useState<number>(5);
+  const [aluOp, setAluOp] = useState<AluOpcode>("ADD");
+
+  // Calculated values
+  const muxOut = mux(muxSel, muxData);
+  const decOut = decoder(decIn, 2, decEn);
+  const pencOut = priorityEncoder(pencIn);
+
+  // 4-bit bit arrays for adder (LSB first)
+  const aBits = Array.from({ length: 4 }, (_, i) => ((adderA >> i) & 1) === 1);
+  const effB = adderSub ? (~adderB & 0xf) : adderB;
+  const bBits = Array.from({ length: 4 }, (_, i) => ((effB >> i) & 1) === 1);
+  const rca = rippleCarryAdd(aBits, bBits, adderSub);
+  const sumVal = rca.sum.reduce((acc, b, i) => acc | ((b ? 1 : 0) << i), 0);
+  const signedOvf = (rca.stages[2]?.cout ?? false) !== rca.carryOut;
+
+  // ALU calc
+  const aluRes = alu(aluA, aluB, aluOp, 4);
+
+  return (
+    <Box title="Combinational Blocks & ALU">
+      <div className="flex gap-1 border-b border-border pb-3">
+        {(["mux", "adder", "alu"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            className={`btn ${tab === t ? "btn-primary" : "btn-ghost"}`}
+            onClick={() => setTab(t)}
+          >
+            {t === "mux" ? "1. Multiplexer & Decoder" : t === "adder" ? "2. Ripple-Carry Adder" : "3. 4-Bit ALU"}
+          </button>
+        ))}
+      </div>
+
+      {tab === "mux" && (
+        <div className="mt-4 space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <span className="font-mono text-xs text-muted-foreground self-center">Block:</span>
+            <button
+              type="button"
+              className={`btn ${blockType === "mux4" ? "btn-primary" : "btn-ghost"}`}
+              onClick={() => setBlockType("mux4")}
+            >
+              4:1 Multiplexer
+            </button>
+            <button
+              type="button"
+              className={`btn ${blockType === "dec24" ? "btn-primary" : "btn-ghost"}`}
+              onClick={() => setBlockType("dec24")}
+            >
+              2-to-4 Decoder & SOP
+            </button>
+            <button
+              type="button"
+              className={`btn ${blockType === "penc4" ? "btn-primary" : "btn-ghost"}`}
+              onClick={() => setBlockType("penc4")}
+            >
+              4-to-2 Priority Encoder
+            </button>
+          </div>
+
+          {blockType === "mux4" && (
+            <div className="panel p-4 space-y-3">
+              <div className="font-mono text-xs text-muted-foreground">
+                A 4:1 MUX steers one of 4 data inputs (D0–D3) to output Y based on select lines (S1, S0).
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <div className="eyebrow mb-2">Data Inputs (D3..D0)</div>
+                  <div className="flex gap-2">
+                    {[0, 1, 2, 3].map((i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          const next = [...muxData] as [boolean, boolean, boolean, boolean];
+                          next[i] = !next[i];
+                          setMuxData(next);
+                        }}
+                        className={`h-10 w-12 rounded border font-mono text-sm transition-colors ${
+                          muxData[i] ? "border-primary bg-primary/20 text-primary font-bold" : "border-border text-muted-foreground"
+                        } ${muxSel === i ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
+                      >
+                        D{i}={muxData[i] ? "1" : "0"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="eyebrow mb-2">Select Lines (S1, S0)</div>
+                  <div className="flex items-center gap-2">
+                    {[0, 1, 2, 3].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setMuxSel(s)}
+                        className={`btn font-mono text-xs ${muxSel === s ? "btn-primary" : "btn-ghost"}`}
+                      >
+                        {s.toString(2).padStart(2, "0")} (D{s})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rule-t pt-3 font-mono text-sm">
+                <Row k="Active Select S1,S0" v={`${(muxSel >> 1) & 1},${muxSel & 1} (routes D${muxSel})`} />
+                <Row k="Output Y" v={muxOut ? "1" : "0"} />
+                <Row
+                  k="Boolean Equation"
+                  v={`Y = S1'S0'·D0 + S1'S0·D1 + S1S0'·D2 + S1S0·D3 = D${muxSel} = ${muxOut ? "1" : "0"}`}
+                />
+              </div>
+            </div>
+          )}
+
+          {blockType === "dec24" && (
+            <div className="panel p-4 space-y-3">
+              <div className="font-mono text-xs text-muted-foreground">
+                An n-to-2ⁿ decoder activates exactly minterm row m_i corresponding to binary input A.
+                Connect decoder outputs to an OR gate to implement any sum-of-products function!
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-2 font-mono text-xs">
+                  Enable (EN):
+                  <button
+                    type="button"
+                    className={`btn ${decEn ? "btn-primary" : "btn-ghost"}`}
+                    onClick={() => setDecEn(!decEn)}
+                  >
+                    {decEn ? "1 (Active)" : "0 (Disabled)"}
+                  </button>
+                </label>
+                <div className="flex items-center gap-2 font-mono text-xs">
+                  <span>Input A (A1,A0):</span>
+                  {[0, 1, 2, 3].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      className={`btn font-mono text-xs ${decIn === val ? "btn-primary" : "btn-ghost"}`}
+                      onClick={() => setDecIn(val)}
+                    >
+                      {val.toString(2).padStart(2, "0")} (m{val})
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2 pt-2">
+                {decOut.map((active, i) => (
+                  <div
+                    key={i}
+                    className={`rounded border p-2 text-center font-mono ${
+                      active ? "border-primary bg-primary/20 text-primary font-bold" : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    <div className="text-xs">Y{i} (m{i})</div>
+                    <div className="text-lg">{active ? "1" : "0"}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rule-t pt-3">
+                <div className="eyebrow mb-2">Build Function F with OR Gate: pick minterms</div>
+                <div className="flex gap-2">
+                  {[0, 1, 2, 3].map((m) => {
+                    const checked = decMinterms.includes(m);
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => {
+                          setDecMinterms(checked ? decMinterms.filter((x) => x !== m) : [...decMinterms, m].sort());
+                        }}
+                        className={`btn font-mono text-xs ${checked ? "btn-primary" : "btn-ghost"}`}
+                      >
+                        m{m} ({checked ? "included" : "excluded"})
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-2 font-mono text-xs">
+                  <Row
+                    k="Synthesized F"
+                    v={decMinterms.length ? `Σm(${decMinterms.join(", ")})` : "0"}
+                  />
+                  <Row
+                    k="Evaluated F for input A"
+                    v={decEn && decMinterms.includes(decIn) ? "1" : "0"}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {blockType === "penc4" && (
+            <div className="panel p-4 space-y-3">
+              <div className="font-mono text-xs text-muted-foreground">
+                A priority encoder encodes the highest-index asserted input into binary. Used in interrupt controllers and bus arbiters.
+              </div>
+              <div className="eyebrow">Assert Inputs (I3 has highest priority):</div>
+              <div className="flex gap-2">
+                {[3, 2, 1, 0].map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      const next = [...pencIn] as [boolean, boolean, boolean, boolean];
+                      next[i] = !next[i];
+                      setPencIn(next);
+                    }}
+                    className={`h-12 w-16 rounded border font-mono text-xs transition-colors ${
+                      pencIn[i] ? "border-primary bg-primary/20 text-primary font-bold" : "border-border text-muted-foreground"
+                    } ${pencOut.valid && pencOut.code === i ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
+                  >
+                    I{i}={pencIn[i] ? "1" : "0"}
+                    <div className="text-[10px] text-muted-foreground">{i === 3 ? "highest" : i === 0 ? "lowest" : `prio ${i}`}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="rule-t pt-3 font-mono text-sm">
+                <Row k="Valid bit V (any input asserted?)" v={pencOut.valid ? "1" : "0"} />
+                <Row k="Encoded output (Y1, Y0)" v={pencOut.valid ? `${pencOut.code.toString(2).padStart(2, "0")} (decimal ${pencOut.code})` : "XX (invalid)"} />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === "adder" && (
+        <div className="mt-4 space-y-4">
+          <div className="font-mono text-xs text-muted-foreground">
+            A 4-bit Ripple-Carry Adder chains 4 Full Adders. Carry-out from bit i ripples into carry-in of bit i+1.
+            Turning on Subtract inverts B and sets C0=1 (forming Two's Complement A + ~B + 1).
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 font-mono text-sm">
+            <label className="flex items-center gap-1">
+              <span>A (0..15):</span>
+              <input
+                type="number"
+                min={0}
+                max={15}
+                className="field w-20"
+                value={adderA}
+                onChange={(e) => setAdderA(Math.max(0, Math.min(15, +e.target.value)))}
+              />
+            </label>
+            <button
+              type="button"
+              className={`btn ${adderSub ? "btn-primary" : "btn-ghost"}`}
+              onClick={() => setAdderSub(!adderSub)}
+            >
+              Mode: {adderSub ? "SUBTRACT (A − B)" : "ADD (A + B)"}
+            </button>
+            <label className="flex items-center gap-1">
+              <span>B (0..15):</span>
+              <input
+                type="number"
+                min={0}
+                max={15}
+                className="field w-20"
+                value={adderB}
+                onChange={(e) => setAdderB(Math.max(0, Math.min(15, +e.target.value)))}
+              />
+            </label>
+          </div>
+
+          <div className="overflow-x-auto">
+            <div className="flex gap-2 min-w-[500px]">
+              {[3, 2, 1, 0].map((bitIdx) => {
+                const stage = rca.stages[bitIdx]!;
+                return (
+                  <div key={bitIdx} className="flex-1 rounded border border-border p-3 font-mono text-xs panel">
+                    <div className="eyebrow text-center mb-2">Stage FA{bitIdx}</div>
+                    <div className="space-y-1">
+                      <Row k="A bit" v={stage.a ? "1" : "0"} />
+                      <Row k={adderSub ? "~B bit" : "B bit"} v={stage.b ? "1" : "0"} />
+                      <Row k="Cin" v={stage.cin ? "1" : "0"} />
+                      <div className="rule-t pt-1 font-bold">
+                        <Row k="Sum" v={stage.sum ? "1" : "0"} />
+                        <Row k="Cout" v={stage.cout ? "1" : "0"} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="panel p-4 font-mono text-sm space-y-1">
+            <Row k="A in binary" v={adderA.toString(2).padStart(4, "0")} />
+            <Row k={adderSub ? "B (inverted with Cin=1)" : "B in binary"} v={effB.toString(2).padStart(4, "0")} />
+            <Row k="4-bit Result Sum" v={`${rca.sum.map((b) => (b ? "1" : "0")).reverse().join("")} (unsigned ${sumVal})`} />
+            <Row k="Final Carry-out (C4)" v={rca.carryOut ? "1" : "0"} />
+            <Row k="Signed Overflow V = C3 ⊕ C4" v={signedOvf ? "1 (OVERFLOW)" : "0 (no overflow)"} />
+            <Row
+              k="Signed interpretation"
+              v={adderSub ? `${adderA >= 8 ? adderA - 16 : adderA} − ${adderB >= 8 ? adderB - 16 : adderB} = ${sumVal >= 8 ? sumVal - 16 : sumVal}` : `${adderA >= 8 ? adderA - 16 : adderA} + ${adderB >= 8 ? adderB - 16 : adderB} = ${sumVal >= 8 ? sumVal - 16 : sumVal}`}
+            />
+          </div>
+        </div>
+      )}
+
+      {tab === "alu" && (
+        <div className="mt-4 space-y-4">
+          <div className="font-mono text-xs text-muted-foreground">
+            The Arithmetic Logic Unit (ALU) combines arithmetic (adder/subtractor) and bitwise operations,
+            selected by an operation code (ALUOp). It generates condition flags used for branching.
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-xs text-muted-foreground">ALUOp:</span>
+            {(["ADD", "SUB", "AND", "OR", "XOR", "SLT"] as const).map((op) => (
+              <button
+                key={op}
+                type="button"
+                className={`btn font-mono text-xs ${aluOp === op ? "btn-primary" : "btn-ghost"}`}
+                onClick={() => setAluOp(op)}
+              >
+                {op}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 font-mono text-sm">
+            <label className="flex items-center gap-2">
+              <span>Operand A (4-bit):</span>
+              <input
+                type="number"
+                min={0}
+                max={15}
+                className="field w-24"
+                value={aluA}
+                onChange={(e) => setAluA(Math.max(0, Math.min(15, +e.target.value)))}
+              />
+              <span className="text-xs text-muted-foreground">({aluA.toString(2).padStart(4, "0")})</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <span>Operand B (4-bit):</span>
+              <input
+                type="number"
+                min={0}
+                max={15}
+                className="field w-24"
+                value={aluB}
+                onChange={(e) => setAluB(Math.max(0, Math.min(15, +e.target.value)))}
+              />
+              <span className="text-xs text-muted-foreground">({aluB.toString(2).padStart(4, "0")})</span>
+            </label>
+          </div>
+
+          <div className="panel p-4 font-mono text-sm space-y-2">
+            <div className="eyebrow">ALU Result & Condition Flags</div>
+            <Row k={`Operation: ${aluOp}`} v={`${aluRes.binResult}₂ (unsigned ${aluRes.result})`} />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+              <div className={`rounded border p-2 text-center ${aluRes.zero ? "border-primary bg-primary/20 text-primary font-bold" : "border-border text-muted-foreground"}`}>
+                <div className="text-xs">Z (Zero Flag)</div>
+                <div className="text-lg">{aluRes.zero ? "1" : "0"}</div>
+                <div className="text-[10px]">Result == 0 (BEQ)</div>
+              </div>
+              <div className={`rounded border p-2 text-center ${aluRes.carryOut ? "border-primary bg-primary/20 text-primary font-bold" : "border-border text-muted-foreground"}`}>
+                <div className="text-xs">C (Carry Out)</div>
+                <div className="text-lg">{aluRes.carryOut ? "1" : "0"}</div>
+                <div className="text-[10px]">Unsigned overflow</div>
+              </div>
+              <div className={`rounded border p-2 text-center ${aluRes.overflow ? "border-destructive bg-destructive/20 text-destructive font-bold" : "border-border text-muted-foreground"}`}>
+                <div className="text-xs">V (Overflow)</div>
+                <div className="text-lg">{aluRes.overflow ? "1" : "0"}</div>
+                <div className="text-[10px]">Signed overflow</div>
+              </div>
+              <div className={`rounded border p-2 text-center ${(aluRes.result & 8) !== 0 ? "border-primary bg-primary/20 text-primary font-bold" : "border-border text-muted-foreground"}`}>
+                <div className="text-xs">N (Negative)</div>
+                <div className="text-lg">{(aluRes.result & 8) !== 0 ? "1" : "0"}</div>
+                <div className="text-[10px]">Sign bit MSB</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Box>
   );
 }

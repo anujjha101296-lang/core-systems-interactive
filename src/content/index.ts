@@ -50,6 +50,7 @@ export const labIndex: { id: string; name: string; track: TrackId; slug: string 
   { id: "ieee", name: "IEEE-754 float32", track: "digital-logic", slug: "fixed-ieee754" },
   { id: "boolean", name: "Boolean expression & truth table", track: "digital-logic", slug: "boolean-gates" },
   { id: "kmap", name: "Karnaugh map & minimiser", track: "digital-logic", slug: "karnaugh-maps" },
+  { id: "combo", name: "Combinational blocks & ALU", track: "digital-logic", slug: "combinational-blocks" },
 ];
 
 export type { Lesson, TrackId };

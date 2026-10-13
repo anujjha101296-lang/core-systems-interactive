@@ -22,6 +22,168 @@ export function addFlags(a: number, b: number, n: number, sub = false) {
 export function f32Bits(x: number) { const d = new DataView(new ArrayBuffer(4)); d.setFloat32(0, x); return d.getUint32(0); }
 export function bitsToF32(b: number) { const d = new DataView(new ArrayBuffer(4)); d.setUint32(0, b >>> 0); return d.getFloat32(0); }
 
+/** Float32 quantization and rounding error calculation vs. float64 decimal parse. */
+export function float32RoundingError(decStr: string, f32Val: number): {
+  diff: number;
+  relDiff: number | null;
+  exact: boolean;
+} | null {
+  const t = decStr.trim();
+  if (!t) return null;
+  const d = parseFloat(t);
+  if (isNaN(d) || !isFinite(d) || isNaN(f32Val) || !isFinite(f32Val)) return null;
+  const diff = f32Val - d;
+  const exact = diff === 0;
+  const relDiff = d !== 0 ? Math.abs(diff / d) : null;
+  return { diff, relDiff, exact };
+}
+
+/* ---------- Combinational Building Blocks ---------- */
+
+/** 2ⁿ-to-1 Multiplexer: selects one of 2ⁿ data inputs based on n select bits. */
+export function mux(sel: number, inputs: boolean[]): boolean {
+  if (sel < 0 || sel >= inputs.length) return false;
+  return !!inputs[sel];
+}
+
+/** 1-to-2ⁿ Demultiplexer: routes 1 data input to one of 2ⁿ outputs. */
+export function demux(input: boolean, sel: number, numOutputs: number): boolean[] {
+  const out = Array<boolean>(numOutputs).fill(false);
+  if (sel >= 0 && sel < numOutputs) {
+    out[sel] = input;
+  }
+  return out;
+}
+
+/** n-to-2ⁿ Decoder with active-high enable. When enable is false, all outputs are false. */
+export function decoder(sel: number, n: number, enable = true): boolean[] {
+  const total = 2 ** n;
+  const out = Array<boolean>(total).fill(false);
+  if (enable && sel >= 0 && sel < total) {
+    out[sel] = true;
+  }
+  return out;
+}
+
+/** 2ⁿ-to-n Priority Encoder (higher index = higher priority).
+ * Returns code of highest active input and valid flag. */
+export function priorityEncoder(inputs: boolean[]): { code: number; valid: boolean } {
+  for (let i = inputs.length - 1; i >= 0; i--) {
+    if (inputs[i]) return { code: i, valid: true };
+  }
+  return { code: 0, valid: false };
+}
+
+/** 1-bit Half Adder: Sum = A ⊕ B, Carry = A · B */
+export function halfAdder(a: boolean, b: boolean): { sum: boolean; carry: boolean } {
+  return { sum: a !== b, carry: a && b };
+}
+
+/** 1-bit Full Adder: Sum = A ⊕ B ⊕ Cin, Carry = (A · B) + (Cin · (A ⊕ B)) */
+export function fullAdder(a: boolean, b: boolean, cin: boolean): { sum: boolean; carry: boolean } {
+  const axorb = a !== b;
+  return {
+    sum: axorb !== cin,
+    carry: (a && b) || (cin && axorb),
+  };
+}
+
+/** Multi-bit Ripple-Carry Adder (LSB at index 0). */
+export function rippleCarryAdd(
+  a: boolean[],
+  b: boolean[],
+  cin = false
+): {
+  sum: boolean[];
+  carryOut: boolean;
+  stages: { a: boolean; b: boolean; cin: boolean; sum: boolean; cout: boolean }[];
+} {
+  const len = Math.max(a.length, b.length);
+  const sum: boolean[] = [];
+  const stages: { a: boolean; b: boolean; cin: boolean; sum: boolean; cout: boolean }[] = [];
+  let c = cin;
+  for (let i = 0; i < len; i++) {
+    const ai = a[i] ?? false;
+    const bi = b[i] ?? false;
+    const fa = fullAdder(ai, bi, c);
+    stages.push({ a: ai, b: bi, cin: c, sum: fa.sum, cout: fa.carry });
+    sum.push(fa.sum);
+    c = fa.carry;
+  }
+  return { sum, carryOut: c, stages };
+}
+
+/** Simple 4-bit (or n-bit) Arithmetic Logic Unit operations */
+export type AluOpcode = "ADD" | "SUB" | "AND" | "OR" | "XOR" | "SLT";
+
+export function alu(
+  a: number,
+  b: number,
+  op: AluOpcode,
+  width = 4
+): {
+  result: number;
+  zero: boolean;
+  carryOut: boolean;
+  overflow: boolean;
+  binResult: string;
+} {
+  const m = 2 ** width;
+  const mask = m - 1;
+  const ua = ((a % m) + m) % m;
+  const ub = ((b % m) + m) % m;
+  let rawRes = 0;
+  let carry = false;
+  let ovf = false;
+
+  const top = 2 ** (width - 1);
+  const sa = ua >= top;
+  const sb = ub >= top;
+
+  switch (op) {
+    case "ADD": {
+      const sum = ua + ub;
+      rawRes = sum & mask;
+      carry = sum >= m;
+      const sr = rawRes >= top;
+      ovf = sa === sb && sr !== sa;
+      break;
+    }
+    case "SUB": {
+      const diff = ua + ((~ub & mask) + 1);
+      rawRes = diff & mask;
+      carry = diff >= m;
+      const sr = rawRes >= top;
+      ovf = sa !== sb && sr !== sa;
+      break;
+    }
+    case "AND":
+      rawRes = ua & ub;
+      break;
+    case "OR":
+      rawRes = ua | ub;
+      break;
+    case "XOR":
+      rawRes = ua ^ ub;
+      break;
+    case "SLT": {
+      const sga = sa ? ua - m : ua;
+      const sgb = sb ? ub - m : ub;
+      rawRes = sga < sgb ? 1 : 0;
+      break;
+    }
+  }
+
+  const result = rawRes & mask;
+  return {
+    result,
+    zero: result === 0,
+    carryOut: carry,
+    overflow: ovf,
+    binResult: result.toString(2).padStart(width, "0"),
+  };
+}
+
 /** Boolean expressions: variables A–Z, operators ! or ' (NOT), & or · or * (AND), ^ (XOR), | or + (OR), 0/1, parentheses. Precedence NOT > AND > XOR > OR. Juxtaposition (AB) means AND. */
 export type BoolNode = { t: "v"; n: string } | { t: "c"; v: boolean } | { t: "not"; a: BoolNode } | { t: "and" | "or" | "xor"; a: BoolNode; b: BoolNode };
 

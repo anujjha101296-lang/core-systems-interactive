@@ -320,6 +320,7 @@ export const dlLessons: Lesson[] = [
     debug: { q: "A student's simplified decoder output fails on input 0110 even though their K-map 'looked right'. What do you check first?", a: "Check the axis order. If the columns were labelled 00, 01, 10, 11, cells 01 and 10 were grouped as neighbours even though they differ in two bits. Re-label in Gray order, regroup, then evaluate the new expression on all 16 rows against the original table, especially row 6." },
     rapid: ["Gray order: 00 01 11 10", "Edges wrap; 4 corners are one group (4-var)", "Group sizes: 1, 2, 4, 8, 16", "2ᵏ cells → n − k literals", "Prime = can't grow; essential = only cover of some 1", "Use X only to enlarge groups", "POS: group 0s, then De Morgan", "Minimal cover may not be unique", "Σm(ones) = ΠM(zeros)"],
     before: [{ track: "digital-logic", slug: "boolean-gates" }],
+    after: [{ track: "digital-logic", slug: "combinational-blocks" }],
     derive: "Show that grouping m5 and m7 in a 3-variable map gives AC: write AB'C + ABC and factor.",
     keyIdea: "Adjacency on the map is exactly a one-variable difference, so every legal rectangle is one application, or repeated applications, of XY + XY' = X.",
     commonMistake: "Labelling axes in binary order (00, 01, 10, 11), or missing wrap-around groups. A second mistake is covering a don't-care with its own extra group.",
@@ -330,5 +331,191 @@ export const dlLessons: Lesson[] = [
       { level: "systems", q: "How do real synthesis tools do this at scale?", a: "Two-level heuristics like Espresso, multi-level factoring, and technology mapping onto a cell library. Correctness is guaranteed by formal equivalence checking, not by eye." },
     ],
     bridge: { to: { track: "digital-logic", slug: "twos-complement", title: "Two's complement & overflow" }, note: "Try minimising the signed-overflow function of the sign bits (aₙ, bₙ, rₙ). The map gives a'b'r + abr', two essential primes, matching the 'same sign in, different sign out' rule." },
+  },
+  {
+    slug: "combinational-blocks",
+    track: "digital-logic",
+    title: "Combinational Building Blocks & ALU",
+    short: "Multiplexers, decoders, priority encoders, adders, subtractors, and arithmetic logic units.",
+    flagship: true,
+    question: "A CPU datapath must choose between 8 registers, decode a 6-bit opcode into 64 control signals, and execute ADD or SUB on 64-bit operands in a single clock cycle. What standard building blocks make this possible without wiring millions of raw gates by hand?",
+    problem:
+      "Raw NAND and NOR gates can synthesize any Boolean function in theory, but designing an entire 64-bit CPU out of discrete gates would be like writing a web browser entirely in raw machine instructions without functions or data structures. Gate counts explode, critical path delays are impossible to reason about, and identical subcircuits (like multi-bit selectors and adders) get reinvented with subtle wiring bugs.\n\nHardware engineers need standard, modular components with well-defined interfaces and known propagation delays: multiplexers for data routing, decoders and priority encoders for control logic, and adders/ALUs for computation.",
+    idea:
+      "Combinational logic has no memory: its outputs depend strictly on its current inputs after a propagation delay. Rather than starting from truth tables for every circuit, digital designers compose five modular archetypes:\n\n1. **Multiplexer (MUX)**: A data selector. An n-select-line MUX routes one of 2ⁿ inputs to a single output.\n2. **Demultiplexer (DEMUX)**: A data distributor. Routes one input to one of 2ⁿ outputs based on n select lines.\n3. **Decoder**: An n-to-2ⁿ minterm generator. Exactly one output line goes HIGH corresponding to the binary value of the n inputs. An n-to-2ⁿ decoder followed by an OR gate can implement ANY Boolean function.\n4. **Priority Encoder**: Compresses 2ⁿ request lines into an n-bit binary code, resolving ties when multiple inputs are asserted simultaneously (vital for interrupt controllers).\n5. **Full Adder & ALU**: 1-bit full adders cascaded into an n-bit ripple-carry or carry-lookahead chain. By conditionally inverting operand B and setting carry-in to 1, the exact same adder performs subtraction (A − B = A + ~B + 1). Wrapping this with a function-select MUX creates the Arithmetic Logic Unit (ALU).",
+    how: {
+      text:
+        "**Multiplexer (MUX):** An n-to-1 MUX has n select bits and 2ⁿ data inputs. Equation for 2:1 MUX: Y = S'·D0 + S·D1. For 4:1 MUX: Y = S1'S0'·D0 + S1'S0·D1 + S1S0'·D2 + S1S0·D3. A 2ⁿ:1 MUX can implement any n+1 variable Boolean function directly by tying data inputs to 0, 1, or the remaining variable.\n\n**Decoder:** An n-to-2ⁿ decoder drives output line Yi = 1 when input binary code equals i (and enable pin EN = 1). Because each output corresponds to a unique minterm mᵢ, any function in canonical SOP F = Σm(...) is constructed simply by ORing the selected decoder outputs.\n\n**Priority Encoder:** When multiple input lines are active, outputs binary code for the highest-priority index plus an active-high Valid bit V. If inputs I3..I0 = 1010, output code is 11₂ = 3 because I3 dominates I1.\n\n**Full Adder & Ripple-Carry:**\n• Half Adder: S = A ⊕ B, Cout = A·B.\n• Full Adder: S = A ⊕ B ⊕ Cin, Cout = A·B + Cin·(A ⊕ B).\n• n-bit Ripple Carry Adder: chains n full adders. Total delay = n · t_carry.\n• Adder-Subtractor: B is XORed with control bit SUB. When SUB = 1, bits are inverted and Cin0 = 1, producing A + ~B + 1 = A − B.",
+      formula:
+        "2:1 MUX:        Y = S'D0 + SD1\n4:1 MUX:        Y = Σ_{i=0}^3 (m_i(S1,S0) · Di)\nn-to-2ⁿ Dec:    Yi = EN · m_i(A_{n-1}..A0)\nFull Adder:     S = A ⊕ B ⊕ Cin,  Cout = AB + Cin(A ⊕ B)\nRipple delay:   t_total = t_setup + n · t_carry_prop\nSubtractor:     B_eff = B ⊕ SUB,  Cin0 = SUB",
+      example:
+        "Implement Full Adder Sum and Carry using a 3-to-8 decoder:\n\n1. Sum S(A, B, Cin) = Σm(1, 2, 4, 7).\nConnect decoder output pins Y1, Y2, Y4, Y7 into a 4-input OR gate.\n\n2. Carry Cout(A, B, Cin) = Σm(3, 5, 6, 7).\nConnect decoder output pins Y3, Y5, Y6, Y7 into a second 4-input OR gate.\n\nResult: Complete 1-bit full adder built with one decoder and two OR gates — zero algebraic minimization needed!",
+    },
+    lab: "combo",
+    trace: [
+      { label: "Data selection (MUX)", detail: "Select lines S1,S0 decode which input data pin is steered to the output bus." },
+      { label: "Opcode decoding", detail: "Decoder activates exactly 1 of 2ⁿ control lines; minterms ORed together trigger control signals." },
+      { label: "Priority arbitration", detail: "Encoder resolves simultaneous device interrupt requests, passing the highest-priority ID to the CPU." },
+      { label: "Carry propagation", detail: "Bit 0 generates sum and carry; carry ripples sequentially through bits 1, 2, and 3." },
+      { label: "ALU status evaluation", detail: "ALU calculates result and evaluates flags: Zero (Z), Carry (C), Overflow (V), Negative (N)." },
+    ],
+    checks: [
+      {
+        id: "cb-mux-inputs",
+        kind: "numeric",
+        prompt: "How many select lines are required for a 64-to-1 multiplexer?",
+        answer: 6,
+        tolerance: 0,
+        hints: ["A multiplexer with n select lines can select among 2ⁿ inputs.", "Solve 2ⁿ = 64."],
+        explain: "2⁶ = 64, so **6** select lines (S5..S0) are needed to address 64 input lines.",
+      },
+      {
+        id: "cb-dec-outputs",
+        kind: "numeric",
+        prompt: "A memory controller uses a 4-to-16 decoder. If Enable = 1 and inputs A3..A0 are binary 1011, which output pin Y_i is HIGH (give the integer index i)?",
+        answer: 11,
+        tolerance: 0,
+        hints: ["Convert binary 1011 to decimal.", "A3 is MSB (weight 8), A2=0, A1=2, A0=1."],
+        explain: "1011₂ = 8 + 2 + 1 = **11**. Output pin Y₁₁ is driven HIGH while all other 15 pins remain LOW.",
+      },
+      {
+        id: "cb-fa-delay",
+        kind: "numeric",
+        prompt: "In a 32-bit ripple-carry adder, if each 1-bit full adder stage has a carry propagation delay of 1.2 ns, what is the total worst-case carry ripple delay in nanoseconds to produce C32?",
+        answer: 38.4,
+        tolerance: 0.1,
+        unit: "ns",
+        hints: ["The carry must sequentially ripple through all 32 stages.", "Multiply the number of stages by the delay per stage."],
+        explain: "32 stages × 1.2 ns/stage = **38.4 ns**. This linear O(n) delay is why high-speed CPUs replace ripple-carry adders with carry-lookahead adders.",
+      },
+      {
+        id: "cb-subtractor-cin",
+        kind: "mcq",
+        prompt: "In a combined adder-subtractor circuit, what must be fed into the carry-in (Cin) of stage 0 during subtraction (A − B)?",
+        options: ["0", "1", "The sign bit of B", "Undefined"],
+        answer: 1,
+        hints: ["Remember two's complement: −B = ~B + 1.", "Inverting B gives ~B; where does the +1 come from?"],
+        explain: "Two's complement subtraction is A − B = A + (~B) + 1. The XOR gates invert B to yield ~B, and setting Cin0 = **1** supplies the necessary +1.",
+      },
+      {
+        id: "cb-penc-pri",
+        kind: "typed",
+        prompt: "In an 8-to-3 priority encoder where input 7 has highest priority, if inputs I = 01001100 (bits I7..I0 from left to right, so I6, I3, I2 are HIGH), what is the 3-bit binary output code?",
+        accept: ["110", "0b110"],
+        hints: ["Identify the highest active index among the set bits.", "Convert that index to 3-bit binary."],
+        explain: "The active inputs are I6, I3, and I2. Because input 7 has highest priority, I6 dominates over I3 and I2. 6 in 3-bit binary is **110**.",
+      },
+      {
+        id: "cb-alu-flags",
+        kind: "msq",
+        prompt: "A 4-bit ALU performs SUB on unsigned operands A = 5 (0101) and B = 8 (1000). Which condition flags will be asserted? (Select all that apply)",
+        options: [
+          "Zero flag (Z = 1)",
+          "Negative flag (N = 1, MSB of result is 1)",
+          "Carry out flag (C = 0, indicating borrow / unsigned underflow)",
+          "Signed overflow flag (V = 1)",
+        ],
+        answer: [1, 2],
+        hints: [
+          "Compute 5 − 8 in 4-bit two's complement: 0101 + (~1000 + 1) = 0101 + 1000 = 1101 (13 unsigned, −3 signed).",
+          "Check the MSB (bit 3), whether the result is 0, whether a carry out of bit 3 occurred, and whether signed overflow occurred.",
+        ],
+        explain: "5 − 8 = −3. In 4 bits: 0101 + 1000 = 1101₂ (13 unsigned, −3 signed). Result is nonzero so Z = 0. MSB is 1 so N = 1. No carry left bit 3 (sum 13 < 16), meaning C = 0 (borrow occurred). Positive minus negative yielded negative (−3), which fits comfortably within the 4-bit signed range [−8..7], so V = 0.",
+      },
+    ],
+    deeper: [
+      {
+        title: "Carry-Lookahead Adders (CLA): Beating O(n) Ripple Delay",
+        body: "A ripple-carry adder has O(n) delay because carry bits must propagate sequentially through every stage. A Carry-Lookahead Adder (CLA) solves this by defining Generate Gᵢ = Aᵢ·Bᵢ (stage will create a carry regardless of Cin) and Propagate Pᵢ = Aᵢ ⊕ Bᵢ (stage will pass incoming carry to Cout). Since C₁ = G₀ + P₀·C₀, C₂ = G₁ + P₁·G₀ + P₁·P₀·C₀, any carry can be computed in just 2 gate levels! By tree-hierarchies (Kogge–Stone, Brent–Kung), carry generation drops from O(n) to O(log n), enabling multi-gigahertz arithmetic.",
+      },
+      {
+        title: "Shannon's Expansion & Universal MUX Synthesis",
+        body: "Shannon's Expansion Theorem states that any Boolean function can be expressed as F(x₁, x₂, ..., xₙ) = x₁'·F(0, x₂, ...) + x₁·F(1, x₂, ...). This is mathematically identical to a 2:1 multiplexer where select S = x₁, input D0 = F(0, ...), and input D1 = F(1, ...). Consequently, an n-to-1 MUX can implement ANY n-variable function without extra gates, or an (n+1)-variable function by applying the remaining variable or its complement to the data inputs.",
+      },
+      {
+        title: "Tri-State Buffers and Shared Internal Busses",
+        body: "In a processor datapath with 32 registers, multiplexing 32 registers to the ALU requires massive wire routing. An alternative is a shared bus with tri-state buffers. A tri-state buffer has three states: 0, 1, and High-Impedance (Z, electrically disconnected). By ensuring only one register's output buffer is enabled onto the bus at any moment (controlled by a decoder), dozens of components share a single set of 64 wires.",
+      },
+      {
+        title: "ALU Condition Codes in Instruction Set Architectures",
+        body: "Branch instructions do not recompute arithmetic; they test hardware flags generated by the ALU's previous operation: Zero (Z, result is 0), Negative (N, MSB is 1), Carry (C, unsigned overflow/no-borrow), and Overflow (V, signed two's complement overflow). In RISC-V and ARM, BEQ checks Z=1, BNE checks Z=0, BLT checks N ⊕ V = 1 (signed less than), and BLTU checks C=0 (unsigned less than).",
+      },
+    ],
+    followups: [
+      {
+        q: "Can you build an AND gate or an OR gate using only a 2:1 MUX without any extra inverters?",
+        a: "Yes. For AND(A,B): set select S = A, data D0 = 0, D1 = B. When A = 0, Y = 0; when A = 1, Y = B. For OR(A,B): set select S = A, data D0 = B, D1 = 1. When A = 0, Y = B; when A = 1, Y = 1.",
+      },
+      {
+        q: "What is the relationship between an n-to-2ⁿ decoder and a 1-to-2ⁿ demultiplexer?",
+        a: "They are the exact same physical circuit. An n-to-2ⁿ decoder with an Enable pin (EN) acts as a 1-to-2ⁿ DEMUX if EN is treated as the Data Input and the decoder inputs are treated as the Select lines.",
+      },
+      {
+        q: "Why does the adder-subtractor XOR operand B with SUB instead of using a dedicated subtractor?",
+        a: "Hardware reuse. Two's complement negation is −B = ~B + 1. The XOR gate acts as a conditional inverter: when SUB = 0, B ⊕ 0 = B; when SUB = 1, B ⊕ 1 = ~B. Injecting SUB into Cin0 simultaneously adds the required +1. Thus, one adder performs both addition and subtraction with almost zero additional silicon area.",
+      },
+    ],
+    tradeoff: {
+      failure:
+        "Using ripple-carry adders on high-frequency paths, leading to setup-time violations as the carry chain fails to settle before the clock edge; or failing to resolve priority ties in interrupt handlers, causing device starvation.",
+      tradeoff:
+        "Ripple-carry adders minimize silicon area and dynamic power at the expense of O(n) propagation delay. Carry-lookahead and parallel-prefix adders achieve O(log n) low latency for multi-gigahertz clocks, but at the cost of higher transistor counts, routing congestion, and standby leakage power.",
+    },
+    numbers: [
+      { label: "2:1 MUX transmission gates", value: "4 transistors (vs 12 in static CMOS)" },
+      { label: "Full adder gate delay (carry)", value: "~2 gate levels" },
+      { label: "32-bit Ripple carry delay", value: "~64 gate levels" },
+      { label: "32-bit CLA tree delay", value: "~8–10 gate levels" },
+      { label: "Typical ALU operations", value: "8 to 16 distinct opcodes" },
+    ],
+    model:
+      "Combinational building blocks abstract gate-level complexity into reusable functional units: multiplexers for data steering, decoders for minterm expansion, priority encoders for arbitration, and full adders for arithmetic. To build an ALU, we cascade 1-bit full adders into an adder-subtractor by XORing B with the SUB control bit and injecting Cin=1. A function-select multiplexer then picks between arithmetic, bitwise logic, and comparisons, outputting condition flags (Z, C, V, N) that drive processor branching.",
+    debug: {
+      q: "A 4-bit adder-subtractor calculates 7 − 2 and outputs 4 with carry-out set to 1. What is the bug?",
+      a: "7 is 0111, 2 is 0010. During subtraction, B must be inverted (~2 = 1101) AND carry-in to bit 0 must be 1. If Cin was accidentally wired to 0 instead of 1, the adder computed 7 + ~2 + 0 = 0111 + 1101 = 10100 -> 4 with carry-out 1! The missing +1 is the classic two's complement subtraction bug.",
+    },
+    rapid: [
+      "2:1 MUX = S'D0 + SD1",
+      "n select lines → 2ⁿ inputs",
+      "Decoder = minterm generator",
+      "DEMUX = Decoder with Data as Enable",
+      "Half adder: S=A⊕B, C=AB",
+      "Full adder: S=A⊕B⊕Cin",
+      "Subtractor: A + ~B + 1",
+      "Flags: Z=Zero, C=Carry, V=Overflow, N=Negative",
+    ],
+    before: [{ track: "digital-logic", slug: "karnaugh-maps" }],
+    derive:
+      "Prove Shannon's expansion for a 2:1 MUX implementing OR(A,B): Let S = A. When A = 0, F(0,B) = B. When A = 1, F(1,B) = 1. Therefore A'·B + A·1 = A + B.",
+    keyIdea:
+      "High-level digital architectures are assembled from modular combinational primitives. Multiplexers steer data, decoders decode instructions, and full adders perform both addition and subtraction with one unified core.",
+    commonMistake:
+      "Forgetting to set Cin = 1 during subtraction in an adder-subtractor, resulting in A − B − 1 instead of A − B.",
+    interviewLadder: [
+      {
+        level: "definition",
+        q: "What is the difference between a multiplexer and a decoder?",
+        a: "A multiplexer selects one of 2ⁿ data inputs to a single output using n select lines. A decoder converts an n-bit input code into activating exactly one of 2ⁿ separate output lines.",
+      },
+      {
+        level: "mechanism",
+        q: "How does an adder-subtractor perform subtraction without a dedicated subtractor circuit?",
+        a: "It uses Two's Complement: A − B = A + (~B) + 1. It XORs operand B with a SUB control bit (inverting B when SUB=1) and feeds SUB into the carry-in of the bit-0 adder.",
+      },
+      {
+        level: "trade-off",
+        q: "Why not use ripple-carry adders in high-speed 64-bit CPU datapaths?",
+        a: "The carry bit must sequentially propagate through all 64 full adders (O(n) delay). For gigahertz processors, carry-lookahead or Kogge-Stone parallel-prefix adders reduce latency to O(log n) at the cost of silicon area and routing density.",
+      },
+      {
+        level: "systems",
+        q: "How do ALU condition flags interact with CPU control logic?",
+        a: "The ALU outputs flags like Zero (Z), Carry (C), Overflow (V), and Negative (N). Conditional branch instructions (such as BEQ, BNE, BLT in RISC-V or ARM) inspect these flags to make control-flow decisions without extra arithmetic instructions.",
+      },
+    ],
+    bridge: {
+      to: { track: "digital-logic", slug: "twos-complement", title: "Signed Numbers & Two's Complement" },
+      note: "The adder-subtractor circuit is the exact physical hardware implementation of two's complement negation (~B + 1).",
+    },
   },
 ];

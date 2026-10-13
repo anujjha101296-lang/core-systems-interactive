@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import type { TraceStep } from "@/content/types";
-import { BaseConv, Twos, Ieee, BoolLab, KMapLab } from "./dl-labs";
+import { BaseConv, Twos, Ieee, BoolLab, KMapLab, ComboLab } from "./dl-labs";
 
 function Slider({ label, value, set, min, max, step = 1, unit = "" }: { label: string; value: number; set: (n: number) => void; min: number; max: number; step?: number; unit?: string }) {
   return (
@@ -432,5 +432,5 @@ export function TraceLab({ steps }: { steps: TraceStep[] }) {
 export const labs: Record<string, () => ReactNode> = {
   ctxswitch: CtxSwitch, scheduler: Scheduler, vm: VM, prodcons: ProdCons, race: Race, deadlock: Deadlock, cas: CAS,
   handshake: Handshake, dns: DNS, lifecycle: Lifecycle, cidr: CIDR, cwnd: Cwnd, nat: NAT, quic: Quic,
-  baseconv: BaseConv, twos: Twos, ieee: Ieee, boolean: BoolLab, kmap: KMapLab,
+  baseconv: BaseConv, twos: Twos, ieee: Ieee, boolean: BoolLab, kmap: KMapLab, combo: ComboLab,
 };
