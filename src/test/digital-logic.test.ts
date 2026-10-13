@@ -3,9 +3,9 @@ import { parseInBase, addFlags, f32Bits, bitsToF32 } from "@/lib/dl-math";
 import { tracks, getLesson } from "@/content";
 
 describe("digital logic lessons", () => {
-  it("publishes the first five lessons with at least 4 checks", () => {
+  it("publishes the current Digital Logic lessons with at least 4 checks", () => {
     const ls = tracks["digital-logic"].lessons;
-    expect(ls.map((l) => l.slug)).toEqual(["number-systems", "twos-complement", "fixed-ieee754", "boolean-gates", "karnaugh-maps"]);
+    expect(ls.map((l) => l.slug)).toEqual(["number-systems", "twos-complement", "fixed-ieee754", "boolean-gates", "karnaugh-maps", "combinational-building-blocks", "sequential-foundations"]);
     ls.forEach((l) => { expect(l.checks.length).toBeGreaterThanOrEqual(4); if (l.bridge) expect(getLesson(l.bridge.to.track, l.bridge.to.slug)).toBeDefined(); });
   });
   it("base conversion", () => {

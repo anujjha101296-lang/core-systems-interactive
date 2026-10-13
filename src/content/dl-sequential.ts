@@ -1,0 +1,63 @@
+import type { Lesson } from "./types";
+
+export const sequentialLesson: Lesson = {
+  slug: "sequential-foundations",
+  track: "digital-logic",
+  title: "Sequential Logic Foundations",
+  short: "State, feedback, latches, clock edges, registers, and the timing contract behind synchronous circuits.",
+  flagship: true,
+  question: "If two circuits receive exactly the same inputs now, how can one produce different outputs because of what happened earlier?",
+  problem: "A combinational circuit computes outputs from current inputs only. A counter, a protocol controller, and a CPU register must remember something from earlier cycles. That requires state: feedback plus storage elements, with a disciplined rule for when state may change.",
+  idea: "A sequential circuit's behavior depends on current inputs and stored state. In a synchronous design, flip-flops normally update on a chosen clock edge; combinational logic computes the next state between edges. Latches are level-sensitive and behave differently.",
+  how: {
+    text: "**Combinational:** Y(t)=F(X(t)). **Sequential:** Q(next)=G(Q(current),X). Feedback supplies memory. An SR latch stores a bit using cross-coupled gates; a D latch is transparent when Enable=1 and holds when Enable=0. A positive-edge D flip-flop captures D only at a rising clock edge. Registers are banks of flip-flops sharing a clock and often reset/enable controls.",
+    formula: "Combinational: Y = F(X)\nSequential: Q⁺ = G(Q, X)\nD latch: Q⁺ = D when EN=1; otherwise Q⁺=Q\nD flip-flop: Q⁺ = D on ↑CLK; otherwise Q⁺=Q",
+    example: "A 2-bit modulo-4 counter follows 00 → 01 → 10 → 11 → 00. Its present output alone does not determine the next output: the transition rule and current stored state do. A combinational block with the same inputs cannot remember which count came before.",
+  },
+  lab: "sequential",
+  trace: [
+    { label: "Identify the state", detail: "List the bits that must survive after the current inputs disappear: Q, a register, or an FSM state." },
+    { label: "Choose the storage behavior", detail: "Use a latch for level-sensitive transparency or a flip-flop for edge-triggered state updates." },
+    { label: "Derive next state", detail: "Write Q⁺ as a function of current Q and current inputs; distinguish current state from next state." },
+    { label: "Check timing", detail: "Ensure data is stable around the sampling edge and that combinational paths fit the clock period." },
+  ],
+  checks: [
+    { id: "dl7-comb", kind: "mcq", prompt: "Which statement distinguishes a combinational circuit from a sequential circuit?", options: ["Combinational output depends only on current inputs; sequential behavior also depends on stored state", "Combinational circuits always use a clock", "Sequential circuits cannot contain combinational gates", "Every sequential circuit must be a counter"], answer: 0, hints: ["Ask whether earlier inputs can affect today's output after inputs change."], explain: "A sequential circuit contains state, so its output/next state can depend on stored information as well as current inputs." },
+    { id: "dl7-sr", kind: "mcq", prompt: "For an active-high NOR SR latch, which input pair is forbidden?", options: ["S=0, R=0", "S=1, R=0", "S=0, R=1", "S=1, R=1"], answer: 3, hints: ["The forbidden pair tries to assert Set and Reset together."], explain: "S=R=1 drives both NOR outputs low, violating the complementary-output invariant; release behavior can be unpredictable." },
+    { id: "dl7-latch", kind: "numeric", prompt: "A D latch has Q=0, D=1 and EN=0. What is Q after the inputs settle?", answer: 0, tolerance: 0, hints: ["Disabled means hold."], explain: "With EN=0, the latch is closed and retains Q=0 even though D=1." },
+    { id: "dl7-ff", kind: "numeric", prompt: "A positive-edge D flip-flop has Q=0, D=1. The clock changes 1→0. What is Q after the falling edge?", answer: 0, tolerance: 0, hints: ["Only one edge captures data."], explain: "A positive-edge flip-flop captures on 0→1, not on 1→0; Q remains 0." },
+    { id: "dl7-state", kind: "typed", prompt: "Write the next-state equation for a D flip-flop sampled at its active edge.", accept: ["q+=d", "q⁺=d", "q_next=d", "qnext=d", "q(next)=d"], hints: ["At the edge, D is copied into Q."], explain: "At the active edge, Q⁺ = D. Between edges, Q holds its previous value in the ideal model." },
+    { id: "dl7-setup", kind: "mcq", prompt: "Why must D be stable around the active clock edge?", options: ["To satisfy setup/hold requirements and reduce metastability risk", "To make the clock frequency equal to D", "Because flip-flops store analog voltages only", "To remove all propagation delay"], answer: 0, hints: ["The sampling element needs a valid timing window."], explain: "Setup and hold specify how long data must be stable before and after the edge. Violations can lead to metastability, whose resolution time is not perfectly bounded." },
+  ],
+  deeper: [
+    { title: "Feedback creates memory", body: "A cross-coupled pair of gates feeds each output back into the other gate's input. This positive feedback supports two stable states. With no set/reset request, the feedback reinforces the stored state instead of recomputing it from an external input." },
+    { title: "Latch versus flip-flop", body: "A latch is level-sensitive: while enable is active, data can propagate through. A flip-flop is edge-triggered: it samples data at a transition. Latches can be area- and power-efficient but require careful phase/timing design; edge-triggered registers make synchronous timing easier to reason about." },
+    { title: "Setup, hold and metastability", body: "Setup time is the minimum stability interval before the sampling edge; hold time is the minimum interval after it. A violation can put the internal state into metastability. Synchronizer chains reduce the probability that metastability propagates across clock domains; they do not make the probability mathematically zero." },
+    { title: "Clock-to-Q and the timing budget", body: "After an edge, Q does not change instantaneously. A synchronous path must allow clock-to-Q delay, combinational propagation delay, setup time, skew and uncertainty within the clock period. Hold analysis checks the minimum-delay path separately." },
+    { title: "Reset and initialization", body: "A reset establishes a known state. Synchronous reset is sampled with the clock; asynchronous reset acts independently of the clock but its deassertion must be handled carefully. Not every technology or FPGA flow initializes registers in the same way, so reset behavior belongs in the design contract." },
+  ],
+  followups: [
+    { q: "Can a circuit be both sequential and contain combinational logic?", a: "Yes. Most synchronous designs combine registers (state) with combinational next-state and output logic." },
+    { q: "Why is an enabled D latch not identical to an edge-triggered D flip-flop?", a: "The latch can follow D throughout the active enable level; the flip-flop samples only at the active edge." },
+    { q: "What is metastability?", a: "A physical storage element can temporarily fail to resolve promptly to a valid 0 or 1 after a timing violation or asynchronous transition near its sampling edge." },
+    { q: "Why are synchronizers needed for asynchronous inputs?", a: "They reduce the chance that metastability in one sampling stage propagates into downstream synchronous logic; the input must still be handled with a suitable protocol." },
+  ],
+  tradeoff: {
+    failure: "Treating a latch like an edge-triggered flip-flop, mixing up current and next state, or assuming setup/hold violations always produce a clean 0 or 1.",
+    tradeoff: "Latches may reduce area and enable time borrowing, while flip-flops provide a simpler edge-based timing model. Both require technology-aware timing analysis and careful reset/clock design.",
+  },
+  numbers: [{ label: "D flip-flop active edge", value: "↑CLK" }, { label: "D latch transparent", value: "EN = 1" }, { label: "Counter states (n bits)", value: "2ⁿ" }],
+  model: "I identify the state variables and write the next-state function from the present state and current inputs. I select a latch or flip-flop based on the intended transparency/edge behavior, define reset and enable semantics, then check setup/hold and clock-to-Q timing. Asynchronous inputs need a synchronization strategy; simulation alone cannot prove away metastability.",
+  debug: { q: "A D flip-flop's Q changes whenever D changes, even while CLK is low. What would you check?", a: "First confirm the RTL describes an edge-triggered process (for example, always_ff @(posedge clk)), not a latch or combinational assignment. Then check the waveform's clock edge, reset behavior, and whether the displayed signal is actually Q or a combinational next-state wire." },
+  rapid: ["State is information retained over time", "Q⁺ = G(Q, X)", "SR NOR latch: S=R=1 is forbidden", "D latch is level-sensitive", "D flip-flop samples at its active edge", "Setup is before; hold is after", "Synchronizers reduce metastability propagation risk"],
+  before: [{ track: "digital-logic", slug: "combinational-building-blocks" }],
+  derive: "Starting from a D latch's behavior, write Q⁺ for EN=0 and EN=1, then express it as Q⁺ = EN·D + EN'·Q.",
+  keyIdea: "Combinational logic computes; sequential logic remembers. The storage element's timing contract defines when new information becomes state.",
+  commonMistake: "Assuming a latch only changes on an edge. A latch is transparent for an entire active level; a flip-flop samples on an edge.",
+  interviewLadder: [
+    { level: "definition", q: "What makes a circuit sequential?", a: "Its behavior depends on stored state as well as current inputs." },
+    { level: "mechanism", q: "What does a positive-edge D flip-flop do?", a: "At a rising clock edge, Q captures D; between edges, Q holds." },
+    { level: "trade-off", q: "Latch versus flip-flop?", a: "A latch is level-sensitive and may allow time borrowing; a flip-flop is edge-triggered and simplifies synchronous timing analysis." },
+    { level: "systems", q: "How do you handle an asynchronous status input?", a: "Use a suitable synchronizer or handshake protocol and account for metastability risk and latency." },
+  ],
+};

@@ -1,0 +1,61 @@
+import type { Lesson } from "./types";
+
+export const combinationalLesson: Lesson = {
+  slug: "combinational-building-blocks",
+  track: "digital-logic",
+  title: "Combinational Building Blocks",
+  short: "MUXes, decoders, adders, comparators and the first ALU — composing gates into useful datapaths.",
+  flagship: true,
+  question: "A CPU must choose one of four register values, add two operands, and decide whether the result is zero. How can small gates be composed into those larger functions?",
+  problem: "A circuit built gate-by-gate quickly becomes difficult to reason about. Digital designers use reusable blocks with precise input/output contracts: multiplexers select, decoders activate one line, adders propagate carry, comparators decide ordering, and an ALU combines arithmetic and logic under a control signal.",
+  idea: "A combinational circuit has no stored state: for a stable input vector, its output is a Boolean function of that vector alone. The same truth-table discipline used for gates scales to larger blocks. Composition creates structure, but delay and fan-out still matter.",
+  how: {
+    text: "**MUX:** for select S, Y = S·D1 + S'·D0. A 4:1 MUX uses two select bits and four data inputs. **Decoder:** n input bits activate one of 2ⁿ output lines. **Half adder:** Sum=A⊕B, Carry=AB. **Full adder:** Sum=A⊕B⊕Cin; Cout=AB + ACin + BCin. **Ripple adder:** cascade full adders, connecting each carry-out to the next carry-in. **ALU:** select a function (AND, OR, XOR, ADD, SUB) with control bits.",
+    formula: "S_HA = A ⊕ B; C_HA = AB\nS_FA = A ⊕ B ⊕ Cin\nCout_FA = AB + ACin + BCin\nY_MUX = S·D1 + S'·D0",
+    example: "Add 7 + 5 in 4 bits. LSB: 1+1 gives sum 0, carry 1. Bit 1: 1+0+1 gives sum 0, carry 1. Bit 2: 1+1+1 gives sum 1, carry 1. Bit 3: 0+0+1 gives sum 1, carry 0. Result 1100₂ = 12; no final carry-out.",
+  },
+  lab: "combinational",
+  trace: [
+    { label: "Define the interface", detail: "List every input, output, width and control signal before choosing gates." },
+    { label: "Build the truth table", detail: "For small blocks, enumerate all input combinations and derive each output." },
+    { label: "Compose verified blocks", detail: "Use adders, muxes and decoders as components rather than re-deriving each gate." },
+    { label: "Check boundaries", detail: "Test all-zero, all-one, carry propagation, select endpoints and invalid widths." },
+  ],
+  checks: [
+    { id: "dl6-mux", kind: "numeric", prompt: "A 2:1 MUX has D0=0, D1=1, S=1. What is Y?", answer: 1, tolerance: 0, hints: ["S=1 selects D1."], explain: "Y = S·D1 + S'·D0 = 1·1 + 0·0 = 1." },
+    { id: "dl6-ha", kind: "typed", prompt: "For a half adder with A=1, B=1, write Sum,Carry as two bits in that order.", accept: ["01", "sum=0 carry=1"], hints: ["1+1 is binary 10."], explain: "Sum=A XOR B=0; Carry=AB=1. In the requested Sum,Carry order the answer is 01; note that the binary arithmetic result is carry followed by sum." },
+    { id: "dl6-fa", kind: "numeric", prompt: "A full adder has A=1, B=1, Cin=1. What is Cout?", answer: 1, tolerance: 0, hints: ["Add all three one-bit inputs."], explain: "1+1+1=3=11₂, so Sum=1 and Cout=1." },
+    { id: "dl6-dec", kind: "numeric", prompt: "Which output index is asserted by a 3-to-8 decoder for input 101₂?", answer: 5, tolerance: 0, hints: ["Convert 101₂ to decimal."], explain: "101₂ = 5, so output Y5 is asserted (one-hot)." },
+    { id: "dl6-adder", kind: "numeric", prompt: "Using 4-bit unsigned arithmetic, what stored result is 15 + 1?", answer: 0, tolerance: 0, hints: ["The low four bits are retained."], explain: "15+1=16=1 0000₂. The stored 4-bit sum is 0000 and carry-out is 1." },
+    { id: "dl6-alu", kind: "numeric", prompt: "For a 4-bit ALU, A=9, B=3, operation SUB, what is the stored unsigned result?", answer: 6, tolerance: 0, hints: ["Compute A−B then keep four bits."], explain: "9−3=6=0110₂, so result is 6 and no-borrow carry convention gives C=1." },
+  ],
+  deeper: [
+    { title: "Priority encoders", body: "A plain one-hot encoder assumes exactly one input is high. A priority encoder defines what happens when several inputs are asserted, choosing the highest-priority request and often producing a valid bit." },
+    { title: "Comparators", body: "Equality can be built as an XNOR per bit followed by an AND reduction. Magnitude comparison examines bits from MSB to LSB; the first differing bit determines which unsigned value is larger." },
+    { title: "Timing trade-off", body: "A ripple-carry adder is compact but its worst-case carry delay grows roughly linearly with width. Carry-lookahead computes carry terms in parallel to reduce delay, at the cost of more logic and wiring." },
+    { title: "Synthesis bridge", body: "RTL operators such as +, &, | and == describe behavior. Synthesis maps them into library cells; timing constraints and cell libraries influence whether the result uses ripple-like, carry-lookahead or dedicated arithmetic structures." },
+  ],
+  followups: [
+    { q: "Why is a MUX important in a processor datapath?", a: "It selects among candidate values such as register data, immediate operands, ALU inputs or the next PC." },
+    { q: "What is the difference between a decoder and a demultiplexer?", a: "A decoder turns an n-bit code into a one-hot output; a demultiplexer routes a data input to one selected output. A decoder can be viewed as a DEMUX with its data input tied high." },
+    { q: "Why can carry-out differ from signed overflow?", a: "Carry-out describes unsigned overflow. Signed overflow depends on operand and result signs, and requires separate logic." },
+  ],
+  tradeoff: {
+    failure: "Ignoring signal width, confusing carry-out with signed overflow, or assuming an encoder's inputs are one-hot when they are not.",
+    tradeoff: "Hierarchical blocks improve reuse and verification, but propagation delay, fan-out and interconnect still constrain the maximum clock rate in a synchronous system.",
+  },
+  numbers: [{ label: "4:1 MUX select bits", value: "2" }, { label: "3-to-8 decoder outputs", value: "8" }, { label: "Half-adder cases", value: "4" }, { label: "Full-adder cases", value: "8" }],
+  model: "I first define a block's input/output contract and width. I derive its truth table or Boolean equations, implement it from smaller verified blocks, and test all boundary combinations. For adders I trace carry bit-by-bit; for muxes and decoders I test every select code; for an ALU I verify both the operation and width-limited flags.",
+  debug: { q: "A 4-bit adder reports result 0000 for 1111 + 0001. Is it broken?", a: "Not necessarily: the stored four-bit sum wraps to 0000 and carry-out is 1. Whether that is an error depends on whether the intended interpretation is unsigned or signed." },
+  rapid: ["MUX selects; DEMUX routes", "Decoder output count = 2ⁿ", "Half-adder sum = A XOR B", "Full-adder carry = AB + ACin + BCin", "Ripple carry is simple but can be slow", "ALU function is chosen by control signals"],
+  before: [{ track: "digital-logic", slug: "karnaugh-maps" }],
+  derive: "Derive Cout = AB + ACin + BCin by listing the input rows where at least two of A, B and Cin are 1.",
+  keyIdea: "Combinational blocks are Boolean functions with interfaces; compose and verify them before reasoning about timing.",
+  commonMistake: "Writing a half-adder answer as carry,sum when the question explicitly asks sum,carry — always label output order.",
+  interviewLadder: [
+    { level: "definition", q: "What does a multiplexer do?", a: "It routes one of several data inputs to a single output using select lines." },
+    { level: "mechanism", q: "How does a full adder compute carry?", a: "Carry is 1 when at least two inputs are 1: AB + ACin + BCin." },
+    { level: "trade-off", q: "Why might a ripple adder be slower than carry-lookahead?", a: "The carry dependency passes through each stage, so worst-case delay grows with width." },
+    { level: "systems", q: "Where do muxes appear in a CPU?", a: "In ALU operand selection, write-back data selection, next-PC selection and forwarding paths." },
+  ],
+};
