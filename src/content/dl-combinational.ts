@@ -23,7 +23,7 @@ export const combinationalLesson: Lesson = {
   ],
   checks: [
     { id: "dl6-mux", kind: "numeric", prompt: "A 2:1 MUX has D0=0, D1=1, S=1. What is Y?", answer: 1, tolerance: 0, hints: ["S=1 selects D1."], explain: "Y = S·D1 + S'·D0 = 1·1 + 0·0 = 1." },
-    { id: "dl6-ha", kind: "typed", prompt: "For a half adder with A=1, B=1, write Sum,Carry as two bits in that order.", accept: ["10", "sum=1 carry=0"], hints: ["1+1 is binary 10."], explain: "Sum=A XOR B=0; Carry=AB=1. In the requested Sum,Carry order the answer is 01; note that the binary arithmetic result is carry followed by sum." },
+    { id: "dl6-ha", kind: "typed", prompt: "For a half adder with A=1, B=1, write Sum,Carry as two bits in that order.", accept: ["01", "sum=0 carry=1"], hints: ["1+1 is binary 10."], explain: "Sum=A XOR B=0; Carry=AB=1. In the requested Sum,Carry order the answer is 01; note that the binary arithmetic result is carry followed by sum." },
     { id: "dl6-fa", kind: "numeric", prompt: "A full adder has A=1, B=1, Cin=1. What is Cout?", answer: 1, tolerance: 0, hints: ["Add all three one-bit inputs."], explain: "1+1+1=3=11₂, so Sum=1 and Cout=1." },
     { id: "dl6-dec", kind: "numeric", prompt: "Which output index is asserted by a 3-to-8 decoder for input 101₂?", answer: 5, tolerance: 0, hints: ["Convert 101₂ to decimal."], explain: "101₂ = 5, so output Y5 is asserted (one-hot)." },
     { id: "dl6-adder", kind: "numeric", prompt: "Using 4-bit unsigned arithmetic, what stored result is 15 + 1?", answer: 0, tolerance: 0, hints: ["The low four bits are retained."], explain: "15+1=16=1 0000₂. The stored 4-bit sum is 0000 and carry-out is 1." },
@@ -49,7 +49,6 @@ export const combinationalLesson: Lesson = {
   debug: { q: "A 4-bit adder reports result 0000 for 1111 + 0001. Is it broken?", a: "Not necessarily: the stored four-bit sum wraps to 0000 and carry-out is 1. Whether that is an error depends on whether the intended interpretation is unsigned or signed." },
   rapid: ["MUX selects; DEMUX routes", "Decoder output count = 2ⁿ", "Half-adder sum = A XOR B", "Full-adder carry = AB + ACin + BCin", "Ripple carry is simple but can be slow", "ALU function is chosen by control signals"],
   before: [{ track: "digital-logic", slug: "karnaugh-maps" }],
-  after: [{ track: "digital-logic", slug: "sequential-foundations" }],
   derive: "Derive Cout = AB + ACin + BCin by listing the input rows where at least two of A, B and Cin are 1.",
   keyIdea: "Combinational blocks are Boolean functions with interfaces; compose and verify them before reasoning about timing.",
   commonMistake: "Writing a half-adder answer as carry,sum when the question explicitly asks sum,carry — always label output order.",
@@ -59,5 +58,4 @@ export const combinationalLesson: Lesson = {
     { level: "trade-off", q: "Why might a ripple adder be slower than carry-lookahead?", a: "The carry dependency passes through each stage, so worst-case delay grows with width." },
     { level: "systems", q: "Where do muxes appear in a CPU?", a: "In ALU operand selection, write-back data selection, next-PC selection and forwarding paths." },
   ],
-  bridge: { to: { track: "architecture", slug: "datapath-register-file", title: "Datapath and Register File" }, note: "The same muxes, adders and ALU blocks form the execution datapath of a processor." },
 };
