@@ -20,6 +20,11 @@ describe("sequential circuit models", () => {
     expect(dFlipFlop(1,0,true)).toBe(1);
     expect(dFlipFlop(1,1,true,1)).toBe(0);
   });
+  it("rejects invalid runtime bit values", () => {
+    expect(() => srLatch(2 as 0|1,0,0)).toThrow(RangeError);
+    expect(() => dLatch(0,2 as 0|1,0)).toThrow(RangeError);
+    expect(() => dFlipFlop(0,0,false,2 as 0|1)).toThrow(RangeError);
+  });
   it("registers the lesson and interactive lab", () => {
     expect(getLesson("digital-logic","sequential-foundations")?.lab).toBe("sequential");
     expect(labIndex.some(l => l.id === "sequential" && l.slug === "sequential-foundations")).toBe(true);
