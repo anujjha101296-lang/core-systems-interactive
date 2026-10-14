@@ -5,7 +5,7 @@ export function analyzeTiming(b: TimingBudget): TimingReport {
   for (const [k,v] of Object.entries(b)) finiteNonnegative(v,k);
   if (b.clockPeriod <= 0) throw new RangeError("clockPeriod must be greater than zero");
   // Positive capture skew gives the setup path more time but makes hold harder.
-  const requiredPeriod = b.clkToQ + b.combDelay + b.setup + b.skew;
+  const requiredPeriod = b.clkToQ + b.combDelay + b.setup - b.skew;
   const setupSlack = b.clockPeriod - requiredPeriod;
   const holdSlack = b.clkToQ + b.minCombDelay - b.hold - b.skew;
   return { requiredPeriod, setupSlack, holdSlack, setupPass: setupSlack >= 0, holdPass: holdSlack >= 0, criticalPath: b.clkToQ + b.combDelay };
