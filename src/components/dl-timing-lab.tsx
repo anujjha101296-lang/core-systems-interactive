@@ -32,7 +32,7 @@ export function TimingLab() {
         <div className="rule-b p-3"><p className="eyebrow">Setup slack</p><p className={`font-mono text-xl ${report.setupPass?"text-primary":"text-destructive"}`}>{report.setupSlack.toFixed(2)} ns</p><p className="text-xs">{report.setupPass?"Setup passes":"Setup violation"}</p></div>
         <div className="rule-b p-3"><p className="eyebrow">Hold slack</p><p className={`font-mono text-xl ${report.holdPass?"text-primary":"text-destructive"}`}>{report.holdSlack.toFixed(2)} ns</p><p className="text-xs">{report.holdPass?"Hold passes":"Hold violation"}</p></div>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">Model: required period = clock-to-Q + max combinational delay + setup time + capture skew; hold slack = clock-to-Q + min combinational delay − hold time − capture skew. This simplified model omits uncertainty, jitter, and detailed launch/capture clock-tree terms.</p>
+      <p className="mt-3 text-xs text-muted-foreground">Model: required period = clock-to-Q + max combinational delay + setup time − capture skew; hold slack = clock-to-Q + min combinational delay − hold time − capture skew. This simplified model omits uncertainty, jitter, and detailed launch/capture clock-tree terms.</p>
     </section>
     <section className="panel p-5"><p className="eyebrow mb-3">Hazards & glitches</p>
       <label className="block text-sm">Hazard type<select aria-label="Hazard type" className="field mt-2 w-full" value={hazard} onChange={e=>setHazard(e.target.value as HazardCase)}><option value="static-1">Static-1</option><option value="static-0">Static-0</option><option value="dynamic">Dynamic</option></select></label>
