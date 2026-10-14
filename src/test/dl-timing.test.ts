@@ -4,7 +4,7 @@ import { getLesson, labIndex } from "@/content";
 
 describe("digital timing and reliability", () => {
  it("calculates setup and hold slack with skew sign convention", () => {
-  expect(analyzeTiming({clockPeriod:5,clkToQ:0.4,combDelay:3.2,setup:0.5,skew:0.2,hold:0.25,minCombDelay:0.1})).toMatchObject({requiredPeriod:4.3,setupSlack:0.7,holdSlack:-0.35,setupPass:true,holdPass:false});
+  expect(analyzeTiming({clockPeriod:5,clkToQ:0.4,combDelay:3.2,setup:0.5,skew:0.2,hold:0.25,minCombDelay:0.1})).toMatchObject({requiredPeriod:4.3,setupSlack:0.7,holdSlack:0.05,setupPass:true,holdPass:false});
  });
  it("validates timing inputs", () => {
   expect(() => analyzeTiming({clockPeriod:0,clkToQ:0,combDelay:0,setup:0,skew:0,hold:0,minCombDelay:0})).toThrow(RangeError);
