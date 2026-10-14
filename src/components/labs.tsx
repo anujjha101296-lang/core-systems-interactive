@@ -7,6 +7,7 @@ import { RegistersLab } from "./dl-registers-lab";
 import { FsmLab } from "./dl-fsm-lab";
 import { TimingLab } from "./dl-timing-lab";
 import { ArchitectureFoundationsLab } from "./architecture-foundations-lab";
+import { ArchitectureDatapathLab } from "./architecture-datapath-lab";
 
 function Slider({ label, value, set, min, max, step = 1, unit = "" }: { label: string; value: number; set: (n: number) => void; min: number; max: number; step?: number; unit?: string }) {
   return (
@@ -439,5 +440,5 @@ export const labs: Record<string, () => ReactNode> = {
   ctxswitch: CtxSwitch, scheduler: Scheduler, vm: VM, prodcons: ProdCons, race: Race, deadlock: Deadlock, cas: CAS,
   handshake: Handshake, dns: DNS, lifecycle: Lifecycle, cidr: CIDR, cwnd: Cwnd, nat: NAT, quic: Quic,
   baseconv: BaseConv, twos: Twos, ieee: Ieee, boolean: BoolLab, kmap: KMapLab, combinational: CombinationalLab,
-  sequential: SequentialLab, registers: RegistersLab, fsm: FsmLab, timing: TimingLab, archisa: ArchitectureFoundationsLab,
+  sequential: SequentialLab, registers: RegistersLab, fsm: FsmLab, timing: TimingLab, archisa: ArchitectureFoundationsLab, archdatapath: ArchitectureDatapathLab,
 };
