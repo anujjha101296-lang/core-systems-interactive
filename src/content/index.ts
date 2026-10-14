@@ -57,6 +57,7 @@ export const labIndex: { id: string; name: string; track: TrackId; slug: string 
   { id: "combinational", name: "Combinational building blocks", track: "digital-logic", slug: "combinational-building-blocks" },
   { id: "sequential", name: "Sequential logic foundations", track: "digital-logic", slug: "sequential-foundations" },
   { id: "registers", name: "Registers, shift registers & counters", track: "digital-logic", slug: "registers-shift-registers-counters" },
+  { id: "fsm", name: "FSM & sequence detector", track: "digital-logic", slug: "finite-state-machines" },
 ];
 
 export type { Lesson, TrackId };
