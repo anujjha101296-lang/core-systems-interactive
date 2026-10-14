@@ -1,6 +1,11 @@
 import { osLessons } from "./os";
 import { cnLessons } from "./cn";
 import { dlLessons } from "./digital-logic";
+import { combinationalLesson } from "./dl-combinational";
+import { sequentialLesson } from "./dl-sequential";
+import { registersLesson } from "./dl-registers";
+import { fsmLesson } from "./dl-fsm";
+import { timingLesson } from "./dl-timing";
 import { expandedLessons, enrichLesson } from "./expanded";
 import type { Lesson, TrackId } from "./types";
 
@@ -9,7 +14,7 @@ export type Track = { id: TrackId; name: string; short: string; tag: string; blu
 export const tracks: Record<TrackId, Track> = {
   os: { id: "os", name: "Operating Systems", tag: "Track I", short: "OS", planned: 0, blurb: "Processes, scheduling, synchronization, memory — the machine beneath every service.", lessons: [...osLessons, ...expandedLessons.filter(l => l.track === "os")].map(enrichLesson) },
   cn: { id: "cn", name: "Computer Networks", tag: "Track II", short: "Networks", planned: 0, blurb: "From a typed URL to packets on a wire — DNS, TCP, TLS, routing, QUIC.", lessons: [...cnLessons, ...expandedLessons.filter(l => l.track === "cn")].map(enrichLesson) },
-  "digital-logic": { id: "digital-logic", name: "Digital Logic", short: "Logic", tag: "Track III", planned: 18, blurb: "Bits, gates, Boolean algebra, combinational and sequential circuits — the hardware vocabulary under every instruction.", lessons: dlLessons },
+  "digital-logic": { id: "digital-logic", name: "Digital Logic", short: "Logic", tag: "Track III", planned: 18, blurb: "Bits, gates, Boolean algebra, combinational and sequential circuits — the hardware vocabulary under every instruction.", lessons: [...dlLessons, combinationalLesson, sequentialLesson, registersLesson, fsmLesson, timingLesson] },
   architecture: { id: "architecture", name: "Computer Architecture", short: "Architecture", tag: "Track IV", planned: 14, blurb: "ISAs, datapaths, pipelining, caches and memory hierarchy — how a program actually executes on a CPU.", lessons: [] },
 };
 
@@ -50,6 +55,11 @@ export const labIndex: { id: string; name: string; track: TrackId; slug: string 
   { id: "ieee", name: "IEEE-754 float32", track: "digital-logic", slug: "fixed-ieee754" },
   { id: "boolean", name: "Boolean expression & truth table", track: "digital-logic", slug: "boolean-gates" },
   { id: "kmap", name: "Karnaugh map & minimiser", track: "digital-logic", slug: "karnaugh-maps" },
+  { id: "combinational", name: "Combinational building blocks", track: "digital-logic", slug: "combinational-building-blocks" },
+  { id: "sequential", name: "Sequential logic foundations", track: "digital-logic", slug: "sequential-foundations" },
+  { id: "registers", name: "Registers, shift registers & counters", track: "digital-logic", slug: "registers-shift-registers-counters" },
+  { id: "fsm", name: "FSM & sequence detector", track: "digital-logic", slug: "finite-state-machines" },
+  { id: "timing", name: "Timing, hazards & reliability", track: "digital-logic", slug: "timing-hazards-reliable-design" },
 ];
 
 export type { Lesson, TrackId };
