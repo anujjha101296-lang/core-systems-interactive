@@ -17,6 +17,9 @@ describe("single-cycle datapath model",()=>{
  });
  it("validates PC and registers the lesson/lab",()=>{
   expect(()=>evaluateDatapath({instruction:"add",rsValue:0,rtValue:0,immediate:0,pc:-1,memoryWord:0})).toThrow(RangeError);
+  expect(()=>evaluateDatapath({instruction:"add",rsValue:0,rtValue:0,immediate:0,pc:3,memoryWord:0})).toThrow(/aligned/);
+  expect(()=>evaluateDatapath({instruction:"lw",rsValue:0,rtValue:0,immediate:32768,pc:0x1000,memoryWord:0})).toThrow(/signed 16-bit/);
+  expect(()=>evaluateDatapath({instruction:"add",rsValue:0.5,rtValue:0,immediate:0,pc:0x1000,memoryWord:0})).toThrow(/integer/);
   expect(tracks.architecture.lessons.map(l=>l.slug)).toContain("single-cycle-datapath-control");
   expect(getLesson("architecture","single-cycle-datapath-control")?.checks.length).toBeGreaterThanOrEqual(6);
   expect(labIndex.some(l=>l.id==="archdatapath"&&l.track==="architecture")).toBe(true);
