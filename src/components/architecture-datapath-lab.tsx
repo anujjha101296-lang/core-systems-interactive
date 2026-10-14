@@ -44,7 +44,7 @@ export function ArchitectureDatapathLab() {
         {result.error ? <p className="font-mono text-sm text-destructive">{result.error}</p> : r && <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {[["ALU control", r.aluControl.toUpperCase()], ["ALU result", String(r.aluResult)], ["Zero flag", String(r.zero)], ["Destination", r.destination], ["Writeback", r.writeback === null ? "—" : String(r.writeback)], ["Next PC", hex(r.nextPc)]].map(([k,v]) =>
-              <div key={k} className="rule-t pt-2"><div className="eyebrow">{k}</div><div className="font-mono text-sm break-all">{v}</div></div>)}
+              <div key={String(k)} className="rule-t pt-2"><div className="eyebrow">{k}</div><div className="font-mono text-sm break-all">{v}</div></div>)}
           </div>
           <div className="space-y-2">
             <div className="eyebrow">Control signals</div>
