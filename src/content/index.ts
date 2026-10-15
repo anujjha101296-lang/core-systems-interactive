@@ -10,6 +10,7 @@ import { architectureFoundationsLesson } from "./architecture-foundations";
 import { datapathLesson } from "./architecture-datapath";
 import { performanceLesson } from "./architecture-performance";
 import { pipelineLesson } from "./architecture-pipeline";
+import { cacheLesson } from "./architecture-cache";
 import { expandedLessons, enrichLesson } from "./expanded";
 import type { Lesson, TrackId } from "./types";
 
@@ -19,7 +20,7 @@ export const tracks: Record<TrackId, Track> = {
   os: { id: "os", name: "Operating Systems", tag: "Track I", short: "OS", planned: 0, blurb: "Processes, scheduling, synchronization, memory — the machine beneath every service.", lessons: [...osLessons, ...expandedLessons.filter(l => l.track === "os")].map(enrichLesson) },
   cn: { id: "cn", name: "Computer Networks", tag: "Track II", short: "Networks", planned: 0, blurb: "From a typed URL to packets on a wire — DNS, TCP, TLS, routing, QUIC.", lessons: [...cnLessons, ...expandedLessons.filter(l => l.track === "cn")].map(enrichLesson) },
   "digital-logic": { id: "digital-logic", name: "Digital Logic", short: "Logic", tag: "Track III", planned: 18, blurb: "Bits, gates, Boolean algebra, combinational and sequential circuits — the hardware vocabulary under every instruction.", lessons: [...dlLessons, combinationalLesson, sequentialLesson, registersLesson, fsmLesson, timingLesson] },
-  architecture: { id: "architecture", name: "Computer Architecture", short: "Architecture", tag: "Track IV", planned: 14, blurb: "ISAs, datapaths, pipelining, caches and memory hierarchy — how a program actually executes on a CPU.", lessons: [architectureFoundationsLesson, datapathLesson, performanceLesson, pipelineLesson] },
+  architecture: { id: "architecture", name: "Computer Architecture", short: "Architecture", tag: "Track IV", planned: 14, blurb: "ISAs, datapaths, pipelining, caches and memory hierarchy — how a program actually executes on a CPU.", lessons: [architectureFoundationsLesson, datapathLesson, performanceLesson, pipelineLesson, cacheLesson] },
 };
 
 /** Display order of tracks. */
@@ -68,6 +69,7 @@ export const labIndex: { id: string; name: string; track: TrackId; slug: string 
   { id: "archdatapath", name: "Single-cycle datapath & control", track: "architecture", slug: "single-cycle-datapath-control" },
   { id: "archperf", name: "CPU performance & Amdahl’s law", track: "architecture", slug: "cpu-performance-cpi-amdahl" },
   { id: "archpipeline", name: "Pipeline hazards & forwarding", track: "architecture", slug: "pipeline-hazards-forwarding" },
+  { id: "archcache", name: "Cache mapping & AMAT", track: "architecture", slug: "cache-mapping-amat" },
 ];
 
 export type { Lesson, TrackId };
