@@ -11,7 +11,9 @@ export function validateCacheConfig(c: CacheConfig) {
  if(!Number.isInteger(bits)||bits<1||bits>30) throw new RangeError("Address width must be 1–30 bits in this teaching model");
  const sets=lines/c.associativity;
  if(!isPowerOfTwo(sets)) throw new RangeError("Number of sets must be a power of two");
- return {lines,sets,offsetBits:Math.log2(c.blockBytes),indexBits:Math.log2(sets),tagBits:bits-Math.log2(sets)-Math.log2(c.blockBytes)};
+ const offsetBits=Math.log2(c.blockBytes), indexBits=Math.log2(sets), tagBits=bits-indexBits-offsetBits;
+ if(tagBits<0) throw new RangeError("Cache geometry leaves no tag bits for this address width");
+ return {lines,sets,offsetBits,indexBits,tagBits};
 }
 export function decodeCacheAddress(address:number,c:CacheConfig):AddressFields {
  const cfg=validateCacheConfig(c), bits=c.addressBits??16;
