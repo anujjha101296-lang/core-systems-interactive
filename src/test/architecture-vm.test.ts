@@ -13,7 +13,7 @@ describe("virtual memory and TLB",()=>{
   expect(rows.map(r=>[r.tlbHit,r.pageFault])).toEqual([[false,false],[true,false],[false,false],[true,false],[false,true]]);
  });
  it("uses LRU replacement when TLB capacity is exceeded",()=>{
-  const rows=simulateTranslations([0x0000,0x0100,0x0004,0x0200,0x0008],config);
+  const rows=simulateTranslations([0x0000,0x0100,0x0004,0x0200,0x0108],config);
   expect(rows.map(r=>r.tlbHit)).toEqual([false,false,true,false,false]);
  });
  it("rejects invalid page size, mapping and virtual address",()=>{
