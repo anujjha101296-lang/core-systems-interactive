@@ -5,7 +5,7 @@ import { getLesson, labIndex, tracks } from "@/content";
 describe("cache mapping and AMAT",()=>{
  it("decodes byte offset, set index and tag",()=>{
   const config={cacheBytes:1024,blockBytes:16,associativity:1,addressBits:16};
-  expect(decodeCacheAddress(0x1234,config)).toMatchObject({byteOffset:4,setIndex:3,tag:0x24});
+  expect(decodeCacheAddress(0x1234,config)).toMatchObject({byteOffset:4,setIndex:35,tag:4});
  });
  it("models direct-mapped conflict misses and later hits",()=>{
   const config={cacheBytes:64,blockBytes:16,associativity:1,addressBits:16};
