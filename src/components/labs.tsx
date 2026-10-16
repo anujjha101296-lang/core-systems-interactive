@@ -12,6 +12,7 @@ import { ArchitecturePerformanceLab } from "./architecture-performance-lab";
 import { ArchitecturePipelineLab } from "./architecture-pipeline-lab";
 import { ArchitectureCacheLab } from "./architecture-cache-lab";
 import { ArchitectureVmLab } from "./architecture-vm-lab";
+import { ArchitectureCoherenceLab } from "./architecture-coherence-lab";
 
 function Slider({ label, value, set, min, max, step = 1, unit = "" }: { label: string; value: number; set: (n: number) => void; min: number; max: number; step?: number; unit?: string }) {
   return (
@@ -444,5 +445,5 @@ export const labs: Record<string, () => ReactNode> = {
   ctxswitch: CtxSwitch, scheduler: Scheduler, vm: VM, prodcons: ProdCons, race: Race, deadlock: Deadlock, cas: CAS,
   handshake: Handshake, dns: DNS, lifecycle: Lifecycle, cidr: CIDR, cwnd: Cwnd, nat: NAT, quic: Quic,
   baseconv: BaseConv, twos: Twos, ieee: Ieee, boolean: BoolLab, kmap: KMapLab, combinational: CombinationalLab,
-  sequential: SequentialLab, registers: RegistersLab, fsm: FsmLab, timing: TimingLab, archisa: ArchitectureFoundationsLab, archdatapath: ArchitectureDatapathLab, archperf: ArchitecturePerformanceLab, archpipeline: ArchitecturePipelineLab, archcache: ArchitectureCacheLab, archvm: ArchitectureVmLab,
+  sequential: SequentialLab, registers: RegistersLab, fsm: FsmLab, timing: TimingLab, archisa: ArchitectureFoundationsLab, archdatapath: ArchitectureDatapathLab, archperf: ArchitecturePerformanceLab, archpipeline: ArchitecturePipelineLab, archcache: ArchitectureCacheLab, archvm: ArchitectureVmLab, archcoherence: ArchitectureCoherenceLab,
 };
