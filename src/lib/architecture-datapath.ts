@@ -3,7 +3,8 @@ export type DatapathInputs = { instruction: DatapathInstruction; rsValue: number
 export type DatapathResult = { aluControl:string; aluResult:number; zero:boolean; regWrite:boolean; memRead:boolean; memWrite:boolean; memToReg:boolean; aluSrc:"register"|"sign-extended immediate"; branch:boolean; destination:"rd"|"rt"|"none"; nextPc:number; writeback:number|null; };
 function signed32(n:number) { return n|0; }
 export function evaluateDatapath(i:DatapathInputs):DatapathResult {
- for(const [k,v] of Object.entries(i)) if(!Number.isFinite(v) || !Number.isInteger(v)) throw new RangeError(`${k} must be a finite integer`);
+ if(!["add","sub","and","or","lw","sw","beq"].includes(i.instruction)) throw new RangeError("instruction must be a supported operation");
+ for(const [k,v] of Object.entries({rsValue:i.rsValue,rtValue:i.rtValue,immediate:i.immediate,pc:i.pc,memoryWord:i.memoryWord})) if(!Number.isFinite(v) || !Number.isInteger(v)) throw new RangeError(`${k} must be a finite integer`);
  if(i.pc<0||i.pc>0xfffffffc||i.pc%4!==0) throw new RangeError("pc must be an aligned 32-bit address");
  if(i.immediate < -32768 || i.immediate > 32767) throw new RangeError("immediate must fit a signed 16-bit field");
  const a=signed32(i.rsValue), b=signed32(i.rtValue), imm=signed32(i.immediate);
