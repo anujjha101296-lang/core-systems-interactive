@@ -10,7 +10,7 @@ describe("RTL reference models", () => {
   it("calculates sum and carry for all full-adder input combinations", () => {
     for (const a of [0, 1]) for (const b of [0, 1]) for (const cin of [0, 1]) {
       const result = simulateRtl("full-adder", { a, b, cin }).outputs;
-      expect(result["sum"] + 2 * result["cout"]).toBe(a + b + cin);
+      expect(result["sum"]! + 2 * result["cout"]!).toBe(a + b + cin);
     }
   });
   it("models synchronous reset priority, enable capture, and hold", () => {
