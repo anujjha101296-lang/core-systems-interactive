@@ -29,4 +29,10 @@ describe("RTL reference models", () => {
     expect(rtlSnippets.mux2).toContain("always_comb");
     expect(rtlSnippets["d-flop"]).toContain("always_ff");
   });
+
+  it("exhaustively checks the mux truth table", () => {
+    for (const a of [0, 1]) for (const b of [0, 1]) for (const sel of [0, 1]) {
+      expect(simulateRtl("mux2", { a, b, sel }).outputs.y).toBe(sel ? b : a);
+    }
+  });
 });
