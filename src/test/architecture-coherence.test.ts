@@ -36,4 +36,12 @@ describe("two-core MSI coherence model", () => {
     expect(getLesson("architecture", "multicore-cache-coherence-msi")?.checks).toHaveLength(6);
     expect(labIndex.some(l => l.id === "archcoherence" && l.track === "architecture")).toBe(true);
   });
+
+  it("requires a new ownership transaction after a cache was invalidated", () => {
+    const write = stepMsi(["S", "S"], 0, "write");
+    expect(write.states).toEqual(["M", "I"]);
+    const reread = stepMsi(write.states, 1, "read");
+    expect(reread.states).toEqual(["S", "S"]);
+    expect(reread.busEvent).toContain("flush");
+  });
 });
