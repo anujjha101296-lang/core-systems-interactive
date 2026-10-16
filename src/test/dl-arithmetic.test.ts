@@ -37,4 +37,10 @@ describe("fixed-width arithmetic and ALU flags", () => {
     expect(getLesson("digital-logic", "rtl-arithmetic-and-alu")?.checks).toHaveLength(6);
     expect(labIndex.some(l => l.id === "arithmetic" && l.track === "digital-logic")).toBe(true);
   });
+
+  it("checks signed boundary overflow in both directions", () => {
+    expect(arithmeticResult(7, 1, 4)).toMatchObject({ result: 8, overflow: true, signedResult: -8 });
+    expect(arithmeticResult(8, 15, 4)).toMatchObject({ result: 7, overflow: true, signedResult: 7 });
+    expect(arithmeticResult(8, 0, 4)).toMatchObject({ result: 8, overflow: false, signedResult: -8 });
+  });
 });
