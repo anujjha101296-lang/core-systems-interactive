@@ -59,4 +59,10 @@ describe("cache mapping and AMAT",()=>{
   expect(getLesson("architecture","multicore-scalability-contention")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="archscale"&&l.track==="architecture")).toBe(true);
  });
+
+ it("registers Architecture performance capstone lesson and lab",()=>{
+  expect(tracks.architecture.lessons.map(l=>l.slug)).toContain("architecture-performance-capstone");
+  expect(getLesson("architecture","architecture-performance-capstone")?.checks).toHaveLength(6);
+  expect(labIndex.some(l=>l.id==="archcapstone"&&l.track==="architecture")).toBe(true);
+ });
 });
