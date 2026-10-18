@@ -15,6 +15,20 @@ import { FpgaLutLab } from "./dl-fpga-lut-lab";
 import { CdcLab } from "./dl-cdc-lab";
 import { DigitalDesignCapstoneLab } from "./dl-capstone-lab";
 
+import { ArchitectureFoundationsLab } from "./architecture-foundations-lab";
+import { ArchitectureDatapathLab } from "./architecture-datapath-lab";
+import { ArchitecturePerformanceLab } from "./architecture-performance-lab";
+import { ArchitecturePipelineLab } from "./architecture-pipeline-lab";
+import { ArchitectureCacheLab } from "./architecture-cache-lab";
+import { ArchitectureVmLab } from "./architecture-vm-lab";
+import { ArchitectureCoherenceLab } from "./architecture-coherence-lab";
+import { ArchitectureIoLab } from "./architecture-io-lab";
+import { ArchitectureDramLab } from "./architecture-dram-lab";
+import { ArchitectureVectorLab } from "./architecture-vector-lab";
+import { MemoryConsistencyLab } from "./architecture-memory-consistency-lab";
+import { ArchitectureGpuLab } from "./architecture-gpu-lab";
+import { ArchitectureScalabilityLab } from "./architecture-scalability-lab";
+import { ArchitectureCapstoneLab } from "./architecture-capstone-lab";
 function Slider({ label, value, set, min, max, step = 1, unit = "" }: { label: string; value: number; set: (n: number) => void; min: number; max: number; step?: number; unit?: string }) {
   return (
     <label className="block">
@@ -446,5 +460,6 @@ export const labs: Record<string, () => ReactNode> = {
   ctxswitch: CtxSwitch, scheduler: Scheduler, vm: VM, prodcons: ProdCons, race: Race, deadlock: Deadlock, cas: CAS,
   handshake: Handshake, dns: DNS, lifecycle: Lifecycle, cidr: CIDR, cwnd: Cwnd, nat: NAT, quic: Quic,
   baseconv: BaseConv, twos: Twos, ieee: Ieee, boolean: BoolLab, kmap: KMapLab, combinational: CombinationalLab,
-  sequential: SequentialLab, registers: RegistersLab, fsm: FsmLab, timing: TimingLab, rtl: RtlLab, arithmetic: ArithmeticLab, memoryfifo: MemoryFifoLab, verification: VerificationLab, serial: SerialInterfacesLab, fpgalut: FpgaLutLab, cdc: CdcLab, dlcapstone: DigitalDesignCapstoneLab,
+  sequential: SequentialLab, registers: RegistersLab, fsm: FsmLab, timing: TimingLab, rtl: RtlLab, arithmetic: ArithmeticLab, memoryfifo: MemoryFifoLab, verification: VerificationLab, serial: SerialInterfacesLab, fpgalut: FpgaLutLab, cdc: CdcLab, dlcapstone: DigitalDesignCapstoneLab,,
+  archisa: ArchitectureFoundationsLab, archdatapath: ArchitectureDatapathLab, archperf: ArchitecturePerformanceLab, archpipeline: ArchitecturePipelineLab, archcache: ArchitectureCacheLab, archvm: ArchitectureVmLab, archcoherence: ArchitectureCoherenceLab, archio: ArchitectureIoLab, archdram: ArchitectureDramLab, archvector: ArchitectureVectorLab, archconsistency: MemoryConsistencyLab, archgpu: ArchitectureGpuLab, archscale: ArchitectureScalabilityLab, archcapstone: ArchitectureCapstoneLab
 };
