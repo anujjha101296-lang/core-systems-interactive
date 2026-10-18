@@ -40,4 +40,11 @@ describe("integrated UART FIFO capstone",()=>{
   expect(getLesson("digital-logic","digital-design-capstone-uart-fifo")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="dlcapstone"&&l.track==="digital-logic")).toBe(true);
  });
+
+ it("serializes an all-zero byte with a high stop bit",()=>{
+  let s=stepCapstone(resetCapstone(),{type:"push",value:0}).state;
+  const bits:number[]=[];
+  for(let i=0;i<10;i++){s=stepCapstone(s,{type:"tick"}).state;bits.push(s.txBit);}
+  expect(bits).toEqual([0,0,0,0,0,0,0,0,0,1]);
+ });
 });
