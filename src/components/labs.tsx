@@ -13,6 +13,7 @@ import { VerificationLab } from "./dl-verification-lab";
 import { SerialInterfacesLab } from "./dl-serial-lab";
 import { FpgaLutLab } from "./dl-fpga-lut-lab";
 import { CdcLab } from "./dl-cdc-lab";
+import { DigitalDesignCapstoneLab } from "./dl-capstone-lab";
 
 function Slider({ label, value, set, min, max, step = 1, unit = "" }: { label: string; value: number; set: (n: number) => void; min: number; max: number; step?: number; unit?: string }) {
   return (
@@ -445,5 +446,5 @@ export const labs: Record<string, () => ReactNode> = {
   ctxswitch: CtxSwitch, scheduler: Scheduler, vm: VM, prodcons: ProdCons, race: Race, deadlock: Deadlock, cas: CAS,
   handshake: Handshake, dns: DNS, lifecycle: Lifecycle, cidr: CIDR, cwnd: Cwnd, nat: NAT, quic: Quic,
   baseconv: BaseConv, twos: Twos, ieee: Ieee, boolean: BoolLab, kmap: KMapLab, combinational: CombinationalLab,
-  sequential: SequentialLab, registers: RegistersLab, fsm: FsmLab, timing: TimingLab, rtl: RtlLab, arithmetic: ArithmeticLab, memoryfifo: MemoryFifoLab, verification: VerificationLab, serial: SerialInterfacesLab, fpgalut: FpgaLutLab, cdc: CdcLab,
+  sequential: SequentialLab, registers: RegistersLab, fsm: FsmLab, timing: TimingLab, rtl: RtlLab, arithmetic: ArithmeticLab, memoryfifo: MemoryFifoLab, verification: VerificationLab, serial: SerialInterfacesLab, fpgalut: FpgaLutLab, cdc: CdcLab, dlcapstone: DigitalDesignCapstoneLab,
 };
