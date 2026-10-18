@@ -53,4 +53,10 @@ describe("cache mapping and AMAT",()=>{
   expect(getLesson("architecture","gpu-simt-coalescing-divergence")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="archgpu"&&l.track==="architecture")).toBe(true);
  });
+
+ it("registers multicore scalability lesson and lab",()=>{
+  expect(tracks.architecture.lessons.map(l=>l.slug)).toContain("multicore-scalability-contention");
+  expect(getLesson("architecture","multicore-scalability-contention")?.checks).toHaveLength(6);
+  expect(labIndex.some(l=>l.id==="archscale"&&l.track==="architecture")).toBe(true);
+ });
 });
