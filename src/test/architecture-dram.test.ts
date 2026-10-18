@@ -16,11 +16,9 @@ describe("DRAM row-buffer timing model",()=>{
   expect(r.totalCycles).toBe(96);
  });
  it("tracks independent open rows in different banks",()=>{
-  const r=simulateDramTrace([0,1024,2048,0],cfg);
-  expect(r.accesses.map(a=>a.bank)).toEqual([0,0,0,0]);
-  const otherBank=simulateDramTrace([0,1024,0],cfg);
-  expect(otherBank.accesses.map(a=>a.bank)).toEqual([0,1,0]);
-  expect(otherBank.accesses.map(a=>a.kind)).toEqual(["closed-row","closed-row","row-hit"]);
+  const r=simulateDramTrace([0,1024,4,1028],cfg);
+  expect(r.accesses.map(a=>a.bank)).toEqual([0,1,0,1]);
+  expect(r.accesses.map(a=>a.kind)).toEqual(["closed-row","closed-row","row-hit","row-hit"]);
  });
  it("calculates zero and nonzero average latency",()=>{
   expect(simulateDramTrace([],cfg)).toMatchObject({totalCycles:0,averageCycles:0});
