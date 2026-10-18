@@ -10,7 +10,7 @@ describe("DRAM row-buffer timing model",()=>{
   expect(r).toMatchObject({rowHits:2,closedRows:1,rowConflicts:0,totalCycles:48});
  });
  it("charges precharge plus activation for a row conflict",()=>{
-  const r=simulateDramTrace([0,1024,0],cfg);
+  const r=simulateDramTrace([0,4096,0],cfg);
   expect(r.accesses.map(a=>a.kind)).toEqual(["closed-row","row-conflict","row-conflict"]);
   expect(r.accesses.map(a=>a.latency)).toEqual([24,36,36]);
   expect(r.totalCycles).toBe(96);
@@ -18,7 +18,7 @@ describe("DRAM row-buffer timing model",()=>{
  it("tracks independent open rows in different banks",()=>{
   const r=simulateDramTrace([0,1024,2048,0],cfg);
   expect(r.accesses.map(a=>a.bank)).toEqual([0,0,0,0]);
-  const otherBank=simulateDramTrace([0,4096,0],cfg);
+  const otherBank=simulateDramTrace([0,1024,0],cfg);
   expect(otherBank.accesses.map(a=>a.bank)).toEqual([0,1,0]);
   expect(otherBank.accesses.map(a=>a.kind)).toEqual(["closed-row","closed-row","row-hit"]);
  });
