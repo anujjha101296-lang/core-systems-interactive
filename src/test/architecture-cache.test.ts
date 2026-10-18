@@ -29,4 +29,10 @@ describe("cache mapping and AMAT",()=>{
   expect(getLesson("architecture","cache-mapping-amat")?.checks.length).toBeGreaterThanOrEqual(6);
   expect(labIndex.some(l=>l.id==="archcache"&&l.track==="architecture")).toBe(true);
  });
+
+ it("registers DRAM timing lesson and lab",()=>{
+  expect(tracks.architecture.lessons.map(l=>l.slug)).toContain("dram-memory-system-timing");
+  expect(getLesson("architecture","dram-memory-system-timing")?.checks).toHaveLength(6);
+  expect(labIndex.some(l=>l.id==="archdram"&&l.track==="architecture")).toBe(true);
+ });
 });
