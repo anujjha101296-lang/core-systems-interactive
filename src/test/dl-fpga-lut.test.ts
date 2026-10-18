@@ -27,4 +27,11 @@ describe("FPGA LUT truth-table model",()=>{
   expect(getLesson("digital-logic","fpga-programmable-logic-luts")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="fpgalut"&&l.track==="digital-logic")).toBe(true);
  });
+
+ it("flips parity output when exactly one input bit is toggled",()=>{
+  for(let i=0;i<16;i++)for(let bit=0;bit<4;bit++){
+   const j=i^(1<<bit);
+   expect(evaluateLut(0x6996,j,4)).toBe(1-evaluateLut(0x6996,i,4));
+  }
+ });
 });
