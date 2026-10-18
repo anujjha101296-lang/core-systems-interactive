@@ -30,4 +30,13 @@ describe("two-flop CDC synchronizer model",()=>{
   expect(getLesson("digital-logic","clock-domain-crossing-reset")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="cdc"&&l.track==="digital-logic")).toBe(true);
  });
+
+ it("holds the synchronized output until the second stage advances",()=>{
+  let s=resetSynchronizer();
+  s=stepSynchronizer(s,1).next;
+  s=stepSynchronizer(s,0).next;
+  expect(s.stage2).toBe(1);
+  s=stepSynchronizer(s,0).next;
+  expect(s.stage2).toBe(0);
+ });
 });
