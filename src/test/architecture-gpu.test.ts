@@ -26,4 +26,10 @@ describe("GPU SIMT divergence and memory coalescing model",()=>{
   expect(getLesson("architecture","gpu-simt-coalescing-divergence")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="archgpu"&&l.track==="architecture")).toBe(true);
  });
+
+ it("keeps transaction efficiency bounded for byte-overlapping accesses",()=>{
+  const r=estimateGpuWarp(32,100,1,4,128);
+  expect(r.transactionEfficiency).toBeLessThanOrEqual(1);
+  expect(r.memorySegments).toBe(1);
+ });
 });
