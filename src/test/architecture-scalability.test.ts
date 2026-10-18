@@ -25,4 +25,11 @@ describe("multicore scalability and contention estimator",()=>{
   expect(()=>estimateParallelScalability(8,90,1000,-1,0,false)).toThrow(RangeError);
   expect(()=>estimateParallelScalability(8,90,1000,0,0,1 as unknown as boolean)).toThrow(RangeError);
  });
+
+ it("shows overhead can erase gains at high core counts",()=>{
+  const ideal=estimateParallelScalability(32,100,32000,0,0,false);
+  const contended=estimateParallelScalability(32,100,32000,200,100,true);
+  expect(ideal.speedup).toBe(32);
+  expect(contended.speedup).toBeLessThan(ideal.speedup);
+ });
 });
