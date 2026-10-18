@@ -10,6 +10,7 @@ import { rtlLesson } from "./dl-rtl";
 import { arithmeticLesson } from "./dl-arithmetic";
 import { memoryFifoLesson } from "./dl-memory-fifo";
 import { verificationLesson } from "./dl-verification";
+import { serialLesson } from "./dl-serial";
 import { expandedLessons, enrichLesson } from "./expanded";
 import type { Lesson, TrackId } from "./types";
 
@@ -18,7 +19,7 @@ export type Track = { id: TrackId; name: string; short: string; tag: string; blu
 export const tracks: Record<TrackId, Track> = {
   os: { id: "os", name: "Operating Systems", tag: "Track I", short: "OS", planned: 0, blurb: "Processes, scheduling, synchronization, memory — the machine beneath every service.", lessons: [...osLessons, ...expandedLessons.filter(l => l.track === "os")].map(enrichLesson) },
   cn: { id: "cn", name: "Computer Networks", tag: "Track II", short: "Networks", planned: 0, blurb: "From a typed URL to packets on a wire — DNS, TCP, TLS, routing, QUIC.", lessons: [...cnLessons, ...expandedLessons.filter(l => l.track === "cn")].map(enrichLesson) },
-  "digital-logic": { id: "digital-logic", name: "Digital Logic", short: "Logic", tag: "Track III", planned: 18, blurb: "Bits, gates, Boolean algebra, combinational and sequential circuits — the hardware vocabulary under every instruction.", lessons: [...dlLessons, combinationalLesson, sequentialLesson, registersLesson, fsmLesson, timingLesson, rtlLesson, arithmeticLesson, memoryFifoLesson, verificationLesson] },
+  "digital-logic": { id: "digital-logic", name: "Digital Logic", short: "Logic", tag: "Track III", planned: 18, blurb: "Bits, gates, Boolean algebra, combinational and sequential circuits — the hardware vocabulary under every instruction.", lessons: [...dlLessons, combinationalLesson, sequentialLesson, registersLesson, fsmLesson, timingLesson, rtlLesson, arithmeticLesson, memoryFifoLesson, verificationLesson, serialLesson] },
   architecture: { id: "architecture", name: "Computer Architecture", short: "Architecture", tag: "Track IV", planned: 14, blurb: "ISAs, datapaths, pipelining, caches and memory hierarchy — how a program actually executes on a CPU.", lessons: [] },
 };
 
@@ -68,6 +69,7 @@ export const labIndex: { id: string; name: string; track: TrackId; slug: string 
   { id: "arithmetic", name: "Arithmetic & ALU flags", track: "digital-logic", slug: "rtl-arithmetic-and-alu" },
   { id: "memoryfifo", name: "Memories & FIFO buffers", track: "digital-logic", slug: "memory-fifos-rtl" },
   { id: "verification", name: "Verification & testbench design", track: "digital-logic", slug: "verification-testbench-design" },
+  { id: "serial", name: "UART, SPI & I²C serial interfaces", track: "digital-logic", slug: "serial-interfaces-uart-spi-i2c" },
 ];
 
 export type { Lesson, TrackId };
