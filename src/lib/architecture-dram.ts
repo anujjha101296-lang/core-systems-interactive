@@ -20,7 +20,7 @@ export function simulateDramTrace(addresses:number[],config:DramConfig):DramRepo
   const rowNumber=Math.floor(address/config.rowBytes);
   const bank=rowNumber%config.banks;
   const row=Math.floor(rowNumber/config.banks);
-  const previousRow=rowByBank[bank];
+  const previousRow=rowByBank[bank] ?? null;
   let kind:DramAccess["kind"],latency:number;
   if(previousRow===row){kind="row-hit";latency=config.tCL;rowHits++;}
   else if(previousRow===null){kind="closed-row";latency=config.tRCD+config.tCL;closedRows++;}
