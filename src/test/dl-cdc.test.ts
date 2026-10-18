@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resetSynchronizer, stepSynchronizer } from "@/lib/dl-cdc";
+import { getLesson, labIndex } from "@/content";
 
 describe("two-flop CDC synchronizer model",()=>{
  it("moves a stable high level through two destination edges",()=>{
@@ -26,7 +27,7 @@ describe("two-flop CDC synchronizer model",()=>{
   expect(()=>stepSynchronizer({stage1:0,stage2:0,cycles:-1},0)).toThrow(RangeError);
  });
  it("registers the CDC lesson and lab",()=>{
-  // Registry checks live in the curriculum regression suite; this test focuses on the state transition.
-  expect(stepSynchronizer(resetSynchronizer(),1).next).toMatchObject({stage1:1,stage2:0});
+  expect(getLesson("digital-logic","clock-domain-crossing-reset")?.checks).toHaveLength(6);
+  expect(labIndex.some(l=>l.id==="cdc"&&l.track==="digital-logic")).toBe(true);
  });
 });
