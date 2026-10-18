@@ -41,4 +41,10 @@ describe("cache mapping and AMAT",()=>{
   expect(getLesson("architecture","simd-vector-execution")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="archvector"&&l.track==="architecture")).toBe(true);
  });
+
+ it("registers memory consistency lesson and lab",()=>{
+  expect(tracks.architecture.lessons.map(l=>l.slug)).toContain("memory-consistency-ordering");
+  expect(getLesson("architecture","memory-consistency-ordering")?.checks).toHaveLength(6);
+  expect(labIndex.some(l=>l.id==="archconsistency"&&l.track==="architecture")).toBe(true);
+ });
 });
