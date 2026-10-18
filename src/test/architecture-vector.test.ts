@@ -27,4 +27,9 @@ describe("SIMD/vector execution estimator",()=>{
   expect(getLesson("architecture","simd-vector-execution")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="archvector"&&l.track==="architecture")).toBe(true);
  });
+
+ it("checks one lane and exact vector width boundaries",()=>{
+  expect(estimateVectorExecution(5,1,2,0,1)).toMatchObject({chunks:5,vectorCycles:5,laneUtilization:1});
+  expect(estimateVectorExecution(9,8,2,0,1)).toMatchObject({chunks:2,wastedLaneSlots:7,laneUtilization:9/16});
+ });
 });
