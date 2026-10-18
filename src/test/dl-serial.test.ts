@@ -29,4 +29,11 @@ describe("UART, SPI and I2C teaching models",()=>{
   expect(getLesson("digital-logic","serial-interfaces-uart-spi-i2c")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="serial"&&l.track==="digital-logic")).toBe(true);
  });
+
+ it("checks parity for all-zero and all-one payloads",()=>{
+  expect(encodeUartFrame(0,8,"even",1).parityBit).toBe(0);
+  expect(encodeUartFrame(0,8,"odd",1).parityBit).toBe(1);
+  expect(encodeUartFrame(255,8,"even",1).parityBit).toBe(0);
+  expect(encodeUartFrame(255,8,"odd",1).parityBit).toBe(1);
+ });
 });
