@@ -30,4 +30,11 @@ describe("architecture performance diagnosis capstone",()=>{
   expect(()=>compareCpuOptimization(base,101,0,0)).toThrow(RangeError);
   expect(()=>compareCpuOptimization(base,0,0,100)).toThrow(RangeError);
  });
+
+ it("scales cycles and time linearly with instruction count under fixed rates",()=>{
+  const one=estimateCpuWorkload({...base,instructions:1_000_000});
+  const two=estimateCpuWorkload({...base,instructions:2_000_000});
+  expect(two.totalCycles).toBe(one.totalCycles*2);
+  expect(two.timeMs).toBe(one.timeMs*2);
+ });
 });
