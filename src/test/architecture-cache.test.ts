@@ -35,4 +35,10 @@ describe("cache mapping and AMAT",()=>{
   expect(getLesson("architecture","dram-memory-system-timing")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="archdram"&&l.track==="architecture")).toBe(true);
  });
+
+ it("registers SIMD/vector execution lesson and lab",()=>{
+  expect(tracks.architecture.lessons.map(l=>l.slug)).toContain("simd-vector-execution");
+  expect(getLesson("architecture","simd-vector-execution")?.checks).toHaveLength(6);
+  expect(labIndex.some(l=>l.id==="archvector"&&l.track==="architecture")).toBe(true);
+ });
 });
