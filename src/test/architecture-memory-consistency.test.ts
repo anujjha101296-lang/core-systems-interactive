@@ -26,4 +26,11 @@ describe("memory consistency store-buffering litmus model",()=>{
   expect(getLesson("architecture","memory-consistency-ordering")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="archconsistency"&&l.track==="architecture")).toBe(true);
  });
+
+ it("always preserves each thread's store-before-load program order in SC outcomes",()=>{
+  for(const o of storeBufferingOutcomes("SC")){
+   expect(o.label).not.toBe("00");
+   expect(o.r0===0&&o.r1===0).toBe(false);
+  }
+ });
 });
