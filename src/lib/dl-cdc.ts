@@ -9,11 +9,3 @@ export function stepSynchronizer(state:SyncState,asyncInput:number):SyncStep{
  const previous={...state};const next:SyncState={stage1:input,stage2:state.stage1,cycles:state.cycles+1};
  return {previous,next,input,output:next.stage2,changed:next.stage2!==state.stage2};
 }
-export function capturePulse(samples:number[]):{captured:boolean;highSamples:number;outputSamples:number[];missed:boolean}{
- if(!Array.isArray(samples)||samples.some(v=>v!==0&&v!==1))throw new RangeError("Samples must contain only 0 or 1");
- let state=resetSynchronizer();const outputSamples:number[]=[];
- for(const s of samples){state=stepSynchronizer(state,s).next;outputSamples.push(state.stage2);}
- const highSamples=samples.filter(v=>v===1).length;
- const captured=outputSamples.includes(1);
- return {captured,highSamples,outputSamples,missed:highSamples>0&&!captured};
-}
