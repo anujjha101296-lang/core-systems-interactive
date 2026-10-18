@@ -7,7 +7,7 @@ export function estimateGpuWarp(lanes:number,branchPercent:number,strideBytes:nu
  const pathALanes=Math.round(lanes*branchPercent/100),pathBLanes=lanes-pathALanes;
  const diverged=pathALanes>0&&pathBLanes>0;const instructionPasses=diverged?2:1;
  const segments=new Set<number>();
- for(let lane=0;lane<lanes;lane++)segments.add(Math.floor((lane*strideBytes)/segmentBytes));
+ for(let lane=0;lane<lanes;lane++)for(let byte=0;byte<elementBytes;byte++)segments.add(Math.floor((lane*strideBytes+byte)/segmentBytes));
  const memorySegments=segments.size,usefulBytes=lanes*elementBytes,transferredBytes=memorySegments*segmentBytes;
  return {lanes,pathALanes,pathBLanes,diverged,instructionPasses,laneUtilization:lanes/(lanes*instructionPasses),memorySegments,usefulBytes,transferredBytes,transactionEfficiency:Math.min(1,usefulBytes/transferredBytes)};
 }
