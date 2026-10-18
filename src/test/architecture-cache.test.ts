@@ -47,4 +47,10 @@ describe("cache mapping and AMAT",()=>{
   expect(getLesson("architecture","memory-consistency-ordering")?.checks).toHaveLength(6);
   expect(labIndex.some(l=>l.id==="archconsistency"&&l.track==="architecture")).toBe(true);
  });
+
+ it("registers GPU SIMT/coalescing lesson and lab",()=>{
+  expect(tracks.architecture.lessons.map(l=>l.slug)).toContain("gpu-simt-coalescing-divergence");
+  expect(getLesson("architecture","gpu-simt-coalescing-divergence")?.checks).toHaveLength(6);
+  expect(labIndex.some(l=>l.id==="archgpu"&&l.track==="architecture")).toBe(true);
+ });
 });
