@@ -14,6 +14,7 @@ import { serialLesson } from "./dl-serial";
 import { fpgaLutLesson } from "./dl-fpga-lut";
 import { cdcLesson } from "./dl-cdc";
 import { digitalCapstoneLesson } from "./dl-capstone";
+import { staLesson } from "./dl-sta";
 import { expandedLessons, enrichLesson } from "./expanded";
 import type { Lesson, TrackId } from "./types";
 
@@ -22,7 +23,7 @@ export type Track = { id: TrackId; name: string; short: string; tag: string; blu
 export const tracks: Record<TrackId, Track> = {
   os: { id: "os", name: "Operating Systems", tag: "Track I", short: "OS", planned: 0, blurb: "Processes, scheduling, synchronization, memory — the machine beneath every service.", lessons: [...osLessons, ...expandedLessons.filter(l => l.track === "os")].map(enrichLesson) },
   cn: { id: "cn", name: "Computer Networks", tag: "Track II", short: "Networks", planned: 0, blurb: "From a typed URL to packets on a wire — DNS, TCP, TLS, routing, QUIC.", lessons: [...cnLessons, ...expandedLessons.filter(l => l.track === "cn")].map(enrichLesson) },
-  "digital-logic": { id: "digital-logic", name: "Digital Logic", short: "Logic", tag: "Track III", planned: 18, blurb: "Bits, gates, Boolean algebra, combinational and sequential circuits — the hardware vocabulary under every instruction.", lessons: [...dlLessons, combinationalLesson, sequentialLesson, registersLesson, fsmLesson, timingLesson, rtlLesson, arithmeticLesson, memoryFifoLesson, verificationLesson, serialLesson, fpgaLutLesson, cdcLesson, digitalCapstoneLesson] },
+  "digital-logic": { id: "digital-logic", name: "Digital Logic", short: "Logic", tag: "Track III", planned: 19, blurb: "Bits, gates, Boolean algebra, combinational and sequential circuits — the hardware vocabulary under every instruction.", lessons: [...dlLessons, combinationalLesson, sequentialLesson, registersLesson, fsmLesson, timingLesson, rtlLesson, arithmeticLesson, memoryFifoLesson, verificationLesson, serialLesson, fpgaLutLesson, cdcLesson, digitalCapstoneLesson, staLesson] },
   architecture: { id: "architecture", name: "Computer Architecture", short: "Architecture", tag: "Track IV", planned: 14, blurb: "ISAs, datapaths, pipelining, caches and memory hierarchy — how a program actually executes on a CPU.", lessons: [] },
 };
 
@@ -76,6 +77,7 @@ export const labIndex: { id: string; name: string; track: TrackId; slug: string 
   { id: "fpgalut", name: "FPGA fabric & LUTs", track: "digital-logic", slug: "fpga-programmable-logic-luts" },
   { id: "cdc", name: "Clock-domain crossing & reset", track: "digital-logic", slug: "clock-domain-crossing-reset" },
   { id: "dlcapstone", name: "Digital design capstone: UART + FIFO", track: "digital-logic", slug: "digital-design-capstone-uart-fifo" },
+  { id: "sta", name: "Static timing constraints & closure", track: "digital-logic", slug: "static-timing-constraints-closure" },
 ];
 
 export type { Lesson, TrackId };
