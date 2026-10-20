@@ -12,11 +12,15 @@ export function analyzeRegisterDependencies(program:OoOInstruction[]):RenamingRe
  const edges:DependencyEdge[]=[];
  for(let j=0;j<program.length;j++){
   const current=program[j]!;
-  for(let i=0;i<j;i++){
-   const earlier=program[i]!;
-   for(const source of current.sources) if(earlier.dest===source) edges.push({from:i+1,to:j+1,kind:"RAW",register:source});
-   if(current.dest&&earlier.dest===current.dest) edges.push({from:i+1,to:j+1,kind:"WAW",register:current.dest});
-   if(current.dest&&earlier.sources.includes(current.dest)) edges.push({from:i+1,to:j+1,kind:"WAR",register:current.dest});
+  // RAW is from the most recent preceding writer, not every older version of the name.
+  for(const source of new Set(current.sources)){
+   for(let i=j-1;i>=0;i--) if(program[i]!.dest===source){edges.push({from:i+1,to:j+1,kind:"RAW",register:source});break;}
+  }
+  if(current.dest){
+   // The immediately previous writer captures the WAW program-order constraint.
+   for(let i=j-1;i>=0;i--) if(program[i]!.dest===current.dest){edges.push({from:i+1,to:j+1,kind:"WAW",register:current.dest});break;}
+   // WAR edges capture earlier readers that used the current architectural name.
+   for(let i=0;i<j;i++) if(program[i]!.sources.includes(current.dest)) edges.push({from:i+1,to:j+1,kind:"WAR",register:current.dest});
   }
  }
  const currentPhysical=new Map<string,string>(); let nextPhysical=0;
