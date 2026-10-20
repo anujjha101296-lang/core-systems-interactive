@@ -6,6 +6,7 @@ export function StaLab() {
  const [falsePath,setFalsePath]=useState(false); const [clock,setClock]=useState(true); const [io,setIo]=useState(true); const [generated,setGenerated]=useState(true);
  const report=useMemo(()=>{try{return {data:analyzeStaPath({periodNs:period,clockToQNs:tcq,maxCombNs:maxDelay,minCombNs:minDelay,setupNs:setup,holdNs:hold,uncertaintyNs:uncertainty,captureSkewNs:skew,falsePath,hasClock:clock,hasIoDelays:io,hasGeneratedClocks:generated}),error:""};}catch(e){return {data:null,error:e instanceof Error?e.message:"Invalid path"};}},[period,tcq,maxDelay,minDelay,setup,hold,uncertainty,skew,falsePath,clock,io,generated]);
  const field="field mt-1 w-full";
+ const setMaxDelaySafe=(n:number)=>{setMaxDelay(n);setMinDelay(v=>Math.min(v,n));};
  const Slider=({label,value,set,min,max,step=0.1}:{label:string;value:number;set:(n:number)=>void;min:number;max:number;step?:number})=><label className="block text-sm"><span className="flex justify-between gap-2"><span>{label}</span><span className="font-mono text-muted-foreground">{value.toFixed(2)} ns</span></span><input className="mt-2 w-full accent-primary" type="range" min={min} max={max} step={step} value={value} onChange={e=>set(Number(e.target.value))}/></label>;
  return <div className="panel p-5 space-y-5">
   <div><p className="eyebrow">Interactive lab · static timing analysis</p><p className="mt-2 text-sm text-muted-foreground">Change the clock budget and path delays, then inspect setup and hold separately. The lab also shows why missing constraints and careless false-path exceptions can make a timing report misleading.</p></div>
@@ -13,7 +14,7 @@ export function StaLab() {
    <div className="space-y-4"><p className="eyebrow">Path timing (ns)</p>
     <Slider label="Clock period" value={period} set={setPeriod} min={1} max={10}/>
     <Slider label="Clock-to-Q max/min launch delay" value={tcq} set={setTcq} min={0.1} max={1}/>
-    <Slider label="Maximum combinational delay" value={maxDelay} set={setMaxDelay} min={0.1} max={6}/>
+    <Slider label="Maximum combinational delay" value={maxDelay} set={setMaxDelaySafe} min={0.1} max={6}/>
     <Slider label="Minimum combinational delay" value={minDelay} set={setMinDelay} min={0} max={Math.max(0.1,maxDelay)} />
     <Slider label="Setup time" value={setup} set={setSetup} min={0.05} max={1}/>
     <Slider label="Hold time" value={hold} set={setHold} min={0} max={0.5}/>
