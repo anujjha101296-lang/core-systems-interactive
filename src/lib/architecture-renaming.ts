@@ -33,7 +33,7 @@ export function analyzeRegisterDependencies(program:OoOInstruction[]):RenamingRe
  const rawCount=edges.filter(e=>e.kind==="RAW").length,warCount=edges.filter(e=>e.kind==="WAR").length,wawCount=edges.filter(e=>e.kind==="WAW").length;
  return {edges,renamed,rawCount,warCount,wawCount,falseDependenciesRemoved:warCount+wawCount};
 }
-export const renamingPresets:Record<string,OoOInstruction[]> = {
+export const renamingPresets:Record<"falseDependencies"|"trueDependency"|"repeatedWrites",OoOInstruction[]> = {
  falseDependencies:[
   {label:"I1: R4 = R1 + R2",op:"ADD",sources:["R1","R2"],dest:"R4"},
   {label:"I2: R1 = R3 + R5",op:"ADD",sources:["R3","R5"],dest:"R1"},
