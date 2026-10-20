@@ -35,9 +35,10 @@ export function analyzeRegisterDependencies(program:OoOInstruction[]):RenamingRe
 }
 export const renamingPresets:Record<string,OoOInstruction[]> = {
  falseDependencies:[
-  {label:"I1: R1 = R2 + R3",op:"ADD",sources:["R2","R3"],dest:"R1"},
-  {label:"I2: R2 = R4 + R5",op:"ADD",sources:["R4","R5"],dest:"R2"},
-  {label:"I3: R1 = R1 + R6",op:"ADD",sources:["R1","R6"],dest:"R1"}
+  {label:"I1: R4 = R1 + R2",op:"ADD",sources:["R1","R2"],dest:"R4"},
+  {label:"I2: R1 = R3 + R5",op:"ADD",sources:["R3","R5"],dest:"R1"},
+  {label:"I3: R1 = R6 + R7",op:"ADD",sources:["R6","R7"],dest:"R1"},
+  {label:"I4: R8 = R1 + R9",op:"ADD",sources:["R1","R9"],dest:"R8"}
  ],
  trueDependency:[
   {label:"I1: R1 = R2 + R3",op:"ADD",sources:["R2","R3"],dest:"R1"},
