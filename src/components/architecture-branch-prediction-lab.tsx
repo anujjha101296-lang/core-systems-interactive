@@ -3,7 +3,7 @@ import { parseBranchTrace, simulateBranchPrediction, type PredictorKind } from "
 
 const presets={loop:"T T T T T T T N",alternating:"T N T N T N T N",bursty:"T T N T T N T T N",mostlyTaken:"T T T T N T T T T N"} as const;
 export function ArchitectureBranchPredictionLab() {
- const [trace,setTrace]=useState(presets.loop); const [kind,setKind]=useState<PredictorKind>("two-bit"); const [penalty,setPenalty]=useState(2);
+ const [trace,setTrace]=useState<string>(presets.loop); const [kind,setKind]=useState<PredictorKind>("two-bit"); const [penalty,setPenalty]=useState(2);
  const result=useMemo(()=>{try{const outcomes=parseBranchTrace(trace);return {report:simulateBranchPrediction(kind,outcomes,penalty),error:""};}catch(e){return {report:null,error:e instanceof Error?e.message:"Invalid trace"};}},[trace,kind,penalty]);
  const field="field mt-1 w-full";
  return <div className="panel p-5 space-y-5">
