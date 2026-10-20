@@ -39,4 +39,10 @@ describe("branch prediction reference model", () => {
     expect(simulateBranchPrediction("two-bit", [], 0)).toMatchObject({ branches: 0, mispredictions: 0, accuracy: 100, penaltyCycles: 0, averagePenaltyPerBranch: 0 });
     expect(simulateBranchPrediction("always-not-taken", ["T", "T"], 0).penaltyCycles).toBe(0);
   });
+
+  it("scores the static always-taken predictor", () => {
+    const r = simulateBranchPrediction("always-taken", ["T", "N", "T"], 4);
+    expect(r.steps.map(s => s.correct)).toEqual([true, false, true]);
+    expect(r.penaltyCycles).toBe(4);
+  });
 });
