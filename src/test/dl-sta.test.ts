@@ -49,4 +49,10 @@ describe("static timing analysis teaching model", () => {
     const partial = analyzeStaPath({ ...base, hasGeneratedClocks:false });
     expect(partial.constraintsComplete).toBe(false);
   });
+
+  it("accounts for negative capture skew in both checks", () => {
+    const r = analyzeStaPath({ ...base, captureSkewNs:-0.2 });
+    expect(r.setupSlackNs).toBeCloseTo(0.6);
+    expect(r.holdSlackNs).toBeCloseTo(0.55);
+  });
 });
