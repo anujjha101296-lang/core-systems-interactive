@@ -34,4 +34,9 @@ describe("branch prediction reference model", () => {
     expect(getLesson("architecture", "branch-prediction-control-hazards")?.checks).toHaveLength(6);
     expect(labIndex.some(l => l.id === "archbranch" && l.track === "architecture")).toBe(true);
   });
+
+  it("handles an empty trace and zero penalty without inventing misses", () => {
+    expect(simulateBranchPrediction("two-bit", [], 0)).toMatchObject({ branches: 0, mispredictions: 0, accuracy: 100, penaltyCycles: 0, averagePenaltyPerBranch: 0 });
+    expect(simulateBranchPrediction("always-not-taken", ["T", "T"], 0).penaltyCycles).toBe(0);
+  });
 });
