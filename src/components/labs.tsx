@@ -1,6 +1,28 @@
 import { useMemo, useState, type ReactNode } from "react";
 import type { TraceStep } from "@/content/types";
 import { BaseConv, Twos, Ieee, BoolLab, KMapLab } from "./dl-labs";
+import { CombinationalLab } from "./dl-combinational-lab";
+import { SequentialLab } from "./dl-sequential-lab";
+import { RegistersLab } from "./dl-registers-lab";
+import { FsmLab } from "./dl-fsm-lab";
+import { TimingLab } from "./dl-timing-lab";
+import { ArchitectureFoundationsLab } from "./architecture-foundations-lab";
+import { ArchitectureDatapathLab } from "./architecture-datapath-lab";
+import { ArchitecturePerformanceLab } from "./architecture-performance-lab";
+import { ArchitecturePipelineLab } from "./architecture-pipeline-lab";
+import { ArchitectureCacheLab } from "./architecture-cache-lab";
+import { ArchitectureVmLab } from "./architecture-vm-lab";
+import { ArchitectureCoherenceLab } from "./architecture-coherence-lab";
+import { ArchitectureIoLab } from "./architecture-io-lab";
+import { ArchitectureDramLab } from "./architecture-dram-lab";
+import { ArchitectureVectorLab } from "./architecture-vector-lab";
+import { MemoryConsistencyLab } from "./architecture-memory-consistency-lab";
+import { ArchitectureGpuLab } from "./architecture-gpu-lab";
+import { ArchitectureScalabilityLab } from "./architecture-scalability-lab";
+import { ArchitectureCapstoneLab } from "./architecture-capstone-lab";
+import { ArchitectureBranchPredictionLab } from "./architecture-branch-prediction-lab";
+import { ArchitectureRenamingLab } from "./architecture-renaming-lab";
+import { ArchitectureExceptionsLab } from "./architecture-exceptions-lab";
 
 function Slider({ label, value, set, min, max, step = 1, unit = "" }: { label: string; value: number; set: (n: number) => void; min: number; max: number; step?: number; unit?: string }) {
   return (
@@ -432,5 +454,6 @@ export function TraceLab({ steps }: { steps: TraceStep[] }) {
 export const labs: Record<string, () => ReactNode> = {
   ctxswitch: CtxSwitch, scheduler: Scheduler, vm: VM, prodcons: ProdCons, race: Race, deadlock: Deadlock, cas: CAS,
   handshake: Handshake, dns: DNS, lifecycle: Lifecycle, cidr: CIDR, cwnd: Cwnd, nat: NAT, quic: Quic,
-  baseconv: BaseConv, twos: Twos, ieee: Ieee, boolean: BoolLab, kmap: KMapLab,
+  baseconv: BaseConv, twos: Twos, ieee: Ieee, boolean: BoolLab, kmap: KMapLab, combinational: CombinationalLab,
+  sequential: SequentialLab, registers: RegistersLab, fsm: FsmLab, timing: TimingLab, archisa: ArchitectureFoundationsLab, archdatapath: ArchitectureDatapathLab, archperf: ArchitecturePerformanceLab, archpipeline: ArchitecturePipelineLab, archcache: ArchitectureCacheLab, archvm: ArchitectureVmLab, archcoherence: ArchitectureCoherenceLab, archio: ArchitectureIoLab, archdram: ArchitectureDramLab, archvector: ArchitectureVectorLab, archconsistency: MemoryConsistencyLab, archgpu: ArchitectureGpuLab, archscale: ArchitectureScalabilityLab, archcapstone: ArchitectureCapstoneLab, archbranch: ArchitectureBranchPredictionLab, archrename: ArchitectureRenamingLab, archexceptions: ArchitectureExceptionsLab,
 };

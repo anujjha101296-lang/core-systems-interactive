@@ -1,0 +1,24 @@
+import { useMemo, useState } from "react";
+import { estimateGpuWarp } from "@/lib/architecture-gpu";
+export function ArchitectureGpuLab(){
+ const [lanes,setLanes]=useState(32);const [branchPercent,setBranchPercent]=useState(50);const [strideBytes,setStrideBytes]=useState(4);const [elementBytes,setElementBytes]=useState(4);const [segmentBytes,setSegmentBytes]=useState(128);
+ const r=useMemo(()=>{try{return {value:estimateGpuWarp(lanes,branchPercent,strideBytes,elementBytes,segmentBytes),error:""};}catch(e){return {value:null,error:e instanceof Error?e.message:"Invalid GPU model inputs"};}},[lanes,branchPercent,strideBytes,elementBytes,segmentBytes]);
+ const field="field mt-1 w-full";
+ return <div className="panel p-5 space-y-5">
+  <div><p className="eyebrow">Interactive lab · GPU SIMT execution</p><p className="mt-2 text-sm text-muted-foreground">Explore two common GPU performance hazards: threads in one warp taking different branches, and neighboring lanes requesting memory from many separate segments.</p></div>
+  <div className="grid gap-4 sm:grid-cols-2">
+   <label className="block text-sm"><span className="eyebrow">Warp width</span><select className={field} value={lanes} onChange={e=>setLanes(Number(e.target.value))}><option value={4}>4 lanes (toy)</option><option value={8}>8 lanes (toy)</option><option value={16}>16 lanes (toy)</option><option value={32}>32 lanes</option><option value={64}>64 lanes</option></select></label>
+   <label className="block text-sm"><span className="eyebrow">Lanes taking branch A</span><input className={field} type="range" min={0} max={100} step={1} value={branchPercent} onChange={e=>setBranchPercent(Number(e.target.value))}/><span className="font-mono text-xs">{branchPercent}% ({Math.round(lanes*branchPercent/100)} lanes)</span></label>
+   <label className="block text-sm"><span className="eyebrow">Address stride between lanes</span><select className={field} value={strideBytes} onChange={e=>setStrideBytes(Number(e.target.value))}>{[4,8,16,32,64,128].map(n=><option key={n} value={n}>{n} bytes</option>)}</select></label>
+   <label className="block text-sm"><span className="eyebrow">Element size</span><select className={field} value={elementBytes} onChange={e=>setElementBytes(Number(e.target.value))}>{[1,2,4,8,16].map(n=><option key={n} value={n}>{n} bytes</option>)}</select></label>
+   <label className="block text-sm sm:col-span-2"><span className="eyebrow">Memory segment size</span><select className={field} value={segmentBytes} onChange={e=>setSegmentBytes(Number(e.target.value))}>{[32,64,128,256,512,1024].map(n=><option key={n} value={n}>{n} bytes</option>)}</select></label>
+  </div>
+  {r.error?<p className="text-sm text-destructive">{r.error}</p>:r.value&&<>
+   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[["Branch passes",r.value.instructionPasses],["Lane utilization",(r.value.laneUtilization*100).toFixed(0)+"%"],["Memory segments",r.value.memorySegments],["Transaction efficiency",(r.value.transactionEfficiency*100).toFixed(1)+"%"]].map(([k,v])=><div key={String(k)} className="rule-t pt-2"><p className="eyebrow">{k}</p><p className="font-mono text-xl">{v}</p></div>)}</div>
+   <div><p className="eyebrow mb-2">Branch lane mask</p><div className="flex flex-wrap gap-1">{Array.from({length:lanes},(_,i)=>{const a=i<r.value!.pathALanes;return <div key={i} title={a?"Branch A":"Branch B"} className={`flex h-7 min-w-5 flex-1 items-center justify-center rounded-sm font-mono text-[10px] ${a?"bg-primary text-primary-foreground":"bg-muted"}`}>{i}</div>})}</div><p className="mt-2 text-xs text-muted-foreground">Branch A: {r.value.pathALanes} lanes · Branch B: {r.value.pathBLanes} lanes · {r.value.diverged?"both paths execute under this simplified divergence model":"one path is taken by the whole warp"}</p></div>
+   <div><p className="eyebrow mb-2">Memory segments touched by lanes</p><div className="flex h-10 items-center gap-1">{Array.from({length:Math.min(r.value.memorySegments,32)},(_,i)=><div key={i} className="flex h-full flex-1 items-center justify-center rounded-sm bg-primary/15 font-mono text-[10px]">{i+1}</div>)}</div><p className="mt-2 text-xs text-muted-foreground">Useful bytes: {r.value.usefulBytes} · modeled transferred bytes: {r.value.transferredBytes}</p></div>
+   <p className="text-sm text-ink-2">Divergence uses two serialized branch passes whenever both paths have active lanes. Coalescing counts distinct aligned segments touched by lane addresses i×stride; it ignores base-address offset, caching, transaction merging, and device-specific memory rules.</p>
+  </>}
+  <p className="text-xs text-muted-foreground">This is a SIMT teaching model, not a cycle-accurate CUDA simulator. Real performance also depends on occupancy, register pressure, scheduling, instruction mix, memory hierarchy, cache policies and the exact GPU architecture.</p>
+ </div>;
+}
