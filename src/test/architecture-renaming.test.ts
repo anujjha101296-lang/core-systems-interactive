@@ -39,4 +39,9 @@ describe("register renaming and dependency analysis", () => {
     ]);
     expect(r.edges.filter(e => e.kind === "RAW" && e.to === 3 && e.register === "R1")).toEqual([{from:2,to:3,kind:"RAW",register:"R1"}]);
   });
+
+  it("uses the initial architectural version before any write", () => {
+    const r = analyzeRegisterDependencies([{label:"I1",op:"ADD",sources:["R1","R2"],dest:"R3"}]);
+    expect(r.renamed[0]?.reads).toEqual([{register:"R1",physical:"initial(R1)"},{register:"R2",physical:"initial(R2)"}]);
+  });
 });
