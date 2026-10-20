@@ -42,4 +42,11 @@ describe("precise exceptions and interrupt boundaries", () => {
     expect(r.flushed).toEqual([]);
     expect(r.epc).toBe(0x1008);
   });
+
+  it("retains the specified cause and handler vector", () => {
+    const r = simulatePreciseTrap({startPc:0x4000,instructionCount:3,trapIndex:1,kind:"synchronous-exception",handlerPc:0x8000,cause:"illegal instruction"});
+    expect(r.cause).toBe("illegal instruction");
+    expect(r.handlerPc).toBe(0x8000);
+    expect(r.trace.at(-1)).toContain("0x8000");
+  });
 });
