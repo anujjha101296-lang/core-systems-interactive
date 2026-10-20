@@ -41,4 +41,12 @@ describe("static timing analysis teaching model", () => {
     expect(labIndex.some(l => l.id==="sta"&&l.track==="digital-logic")).toBe(true);
     expect(tracks["digital-logic"].planned).toBe(19);
   });
+
+  it("detects hold failure independently of setup and marks partial constraints incomplete", () => {
+    const holdFail = analyzeStaPath({ ...base, minCombNs:0, captureSkewNs:0.4 });
+    expect(holdFail.holdPass).toBe(false);
+    expect(holdFail.warnings.some(w => w.includes("Hold violation"))).toBe(true);
+    const partial = analyzeStaPath({ ...base, hasGeneratedClocks:false });
+    expect(partial.constraintsComplete).toBe(false);
+  });
 });
