@@ -34,4 +34,12 @@ describe("precise exceptions and interrupt boundaries", () => {
     expect(labIndex.some(l => l.id === "archexceptions" && l.track === "architecture")).toBe(true);
     expect(tracks.architecture.planned).toBe(17);
   });
+
+  it("rejects zero instruction count and supports an interrupt after all retirement", () => {
+    expect(() => simulatePreciseTrap({startPc:0x1000,instructionCount:0,trapIndex:0,kind:"external-interrupt",handlerPc:0x2000})).toThrow(RangeError);
+    const r = simulatePreciseTrap({startPc:0x1000,instructionCount:2,trapIndex:2,kind:"external-interrupt",handlerPc:0x2000});
+    expect(r.retired).toEqual([0x1000,0x1004]);
+    expect(r.flushed).toEqual([]);
+    expect(r.epc).toBe(0x1008);
+  });
 });
