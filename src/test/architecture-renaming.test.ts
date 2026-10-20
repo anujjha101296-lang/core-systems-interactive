@@ -30,4 +30,13 @@ describe("register renaming and dependency analysis", () => {
     expect(getLesson("architecture","out-of-order-execution-register-renaming")?.checks).toHaveLength(6);
     expect(labIndex.some(l => l.id === "archrename" && l.track === "architecture")).toBe(true);
   });
+
+  it("connects a consumer only to the latest writer of a register", () => {
+    const r = analyzeRegisterDependencies([
+      {label:"I1",op:"ADD",sources:["R2"],dest:"R1"},
+      {label:"I2",op:"ADD",sources:["R3"],dest:"R1"},
+      {label:"I3",op:"ADD",sources:["R1"],dest:"R4"}
+    ]);
+    expect(r.edges.filter(e => e.kind === "RAW" && e.to === 3 && e.register === "R1")).toEqual([{from:2,to:3,kind:"RAW",register:"R1"}]);
+  });
 });
