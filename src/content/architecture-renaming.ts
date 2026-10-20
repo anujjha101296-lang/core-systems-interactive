@@ -1,0 +1,54 @@
+import type { Lesson } from "./types";
+export const renamingLesson:Lesson={
+ slug:"out-of-order-execution-register-renaming",track:"architecture",title:"Out-of-Order Execution & Register Renaming",
+ short:"Separate true data dependencies from register-name conflicts and see how physical registers enable instruction-level parallelism.",
+ flagship:true,
+ question:"How can a processor execute a later instruction before an earlier one without changing the program's architectural result?",
+ problem:"Instructions have different latencies and depend on different values. A strict in-order execution pipeline can leave functional units idle while an older instruction waits. Out-of-order processors execute ready instructions when resources are available, but they must preserve correct dependencies and architectural state.",
+ idea:"Register renaming maps architectural register names to physical registers. It removes false name dependencies (WAR and WAW) while preserving true RAW dependencies. Scheduling logic can then issue ready instructions out of order, and a reorder buffer typically commits results in program order to support precise exceptions and recovery.",
+ how:{text:"RAW (read after write) is a true dependency: a consumer needs a producer's value. WAR (write after read) and WAW (write after write) are name dependencies that arise when multiple instructions reuse an architectural register name. Renaming allocates a new physical destination for each write and binds each source to the version current at that instruction. A reorder buffer tracks in-flight instructions and retires them in program order.",formula:"RAW: producer must supply the consumed value\nWAR: older read must precede a younger overwrite without renaming\nWAW: writes to the same architectural name must preserve program-order result without renaming",example:"I1: R1=R2+R3; I2: R2=R4+R5. I1 reads the old R2 while I2 writes a new R2, creating a WAR name dependency in an unrenamed register file. Renaming lets I1 read the old physical version while I2 writes a new one. The actual RAW dependencies in a program cannot be removed by renaming."},
+ lab:"archrename",
+ trace:[
+  {label:"Decode architectural names",detail:"The ISA names registers such as R1 and R2, but those names need not correspond one-to-one with physical storage inside the CPU."},
+  {label:"Rename each destination",detail:"Allocate a fresh physical register for a destination and update the rename map to point to the newest version."},
+  {label:"Bind source operands",detail:"Each source reads the physical version that was current when the instruction was renamed, preserving true RAW dependencies."},
+  {label:"Schedule ready operations",detail:"Reservation stations or scheduling queues can issue an instruction when its operands and execution resource are ready, even if an older independent instruction is still waiting."},
+  {label:"Retire in order",detail:"A reorder buffer commits completed instructions in program order, allowing precise architectural state and recovery after exceptions or mispredictions."}
+ ],
+ checks:[
+  {id:"ooo-raw",kind:"mcq",prompt:"Which dependency cannot be eliminated by register renaming?",options:["RAW true dependency","WAR anti-dependency","WAW output dependency","A repeated destination name by itself"],answer:0,hints:["A consumer still needs the value computed by its producer."],explain:"Renaming removes false name dependencies, but it cannot remove the true value flow from producer to consumer."},
+  {id:"ooo-war",kind:"mcq",prompt:"What does WAR stand for?",options:["Write after read","Read after write","Write after write","Wait and retry"],answer:0,hints:["An older instruction reads a register before a younger instruction writes it."],explain:"WAR is a write-after-read anti-dependency caused by reusing an architectural register name."},
+  {id:"ooo-waw",kind:"mcq",prompt:"What problem does renaming address when two instructions write the same architectural register?",options:["WAW name dependency","A memory page fault","A cache coherence miss","A branch target miss"],answer:0,hints:["Both writes target the same architectural name."],explain:"Assigning different physical destinations removes the false WAW constraint; retirement still preserves architectural program order."},
+  {id:"ooo-rob",kind:"mcq",prompt:"Why do out-of-order CPUs commonly retire instructions in program order?",options:["To preserve precise architectural state and exception behavior","To ensure every instruction takes the same number of cycles","To remove every RAW dependency","To avoid needing physical registers"],answer:0,hints:["Completed younger work may need to wait for an older instruction."],explain:"In-order retirement lets the CPU expose a precise architectural state even when execution completes out of order."},
+  {id:"ooo-rename",kind:"numeric",prompt:"Three instructions each write a destination register. In a simple fresh-destination renaming model, how many new physical destination versions are allocated?",answer:3,tolerance:0,hints:["Each destination write gets its own physical version."],explain:"Each of the three destination writes receives a new physical register version."},
+  {id:"ooo-ilp",kind:"mcq",prompt:"When can an instruction issue out of order?",options:["When its source operands are ready and a suitable execution resource is available","Only when every older instruction has retired","Only when it has no destination register","Whenever its opcode is ADD"],answer:0,hints:["Scheduling is based on readiness and resources, not simply program position."],explain:"Out-of-order scheduling can issue a ready instruction when operands and execution resources are available, while retirement remains ordered."}
+ ],
+ deeper:[
+  {title:"Instruction-level parallelism",body:"Independent instructions can overlap or execute on different functional units. The available parallelism is limited by true data dependencies, control dependencies, resource conflicts, memory ordering, and the program's instruction mix."},
+  {title:"Register renaming",body:"A rename map associates each architectural register with its current physical version. A destination allocates a new physical register; sources bind to the current mappings before the destination mapping changes. Physical-register reclamation must wait until no in-flight instruction needs the old version."},
+  {title:"Reservation stations and scheduling",body:"Scheduling structures track operands and execution-unit availability. A ready instruction may execute before older instructions that are waiting for operands, but finite issue width, queue capacity, functional-unit availability, and wakeup/select complexity limit the design."},
+  {title:"Reorder buffer and precise state",body:"The reorder buffer tracks in-flight instructions in program order. Results can complete out of order, but retirement updates architectural state in order. An exception or branch misprediction can discard younger speculative work and restore a known precise point."},
+  {title:"Memory dependencies",body:"Register renaming does not eliminate dependencies through memory. Loads and stores can alias at the same address, and processors need memory-dependence prediction, ordering checks, replay, or conservative scheduling to preserve the memory model."},
+  {title:"Cost and power",body:"Out-of-order execution can expose more instruction-level parallelism but requires physical registers, rename tables, scheduling queues, bypass networks, and a reorder buffer. These structures add area, power, verification complexity, and critical-path pressure."}
+ ],
+ followups:[
+  {q:"Can register renaming eliminate RAW dependencies?",a:"No. A RAW dependency represents a real value that a consumer needs from a producer."},
+  {q:"Why execute out of order but retire in order?",a:"Out-of-order execution uses available resources efficiently; in-order retirement preserves precise architectural state and exception semantics."},
+  {q:"Does register renaming solve load/store dependencies?",a:"No. Memory addresses and aliasing create memory dependencies that require separate ordering and disambiguation logic."}
+ ],
+ tradeoff:{failure:"Treating WAR/WAW as true data dependencies, assuming renaming removes RAW, or assuming completed instructions can always commit immediately.",tradeoff:"Out-of-order execution improves utilization and instruction-level parallelism but adds area, power, queueing, wakeup/select, bypass, and recovery complexity."},
+ numbers:[{label:"True dependency",value:"RAW"},{label:"False dependencies",value:"WAR / WAW"},{label:"Retirement",value:"in program order"}],
+ model:"I identify RAW, WAR and WAW edges from the instruction sequence, then rename each destination to a fresh physical version and bind each source to the version current at that point. I preserve RAW value flow and treat scheduling and retirement as separate mechanisms.",
+ debug:{q:"A renamed instruction reads the wrong version of a register. What should you inspect?",a:"Check that source mappings are captured before updating the destination mapping for the same instruction, and that each later write allocates a fresh physical destination."},
+ rapid:["RAW is a true value dependency","WAR and WAW are name dependencies","Renaming assigns new physical destinations","Ready instructions may execute out of order","A reorder buffer commonly retires in order","Memory aliasing is separate from register renaming","Out-of-order hardware costs area, power and verification effort"],
+ before:[{track:"architecture",slug:"pipeline-hazards-forwarding"},{track:"architecture",slug:"branch-prediction-control-hazards"}],
+ derive:"Analyze a short instruction sequence with repeated reads and writes to R1 and R2. Identify RAW, WAR and WAW dependencies, rename destinations, and explain which constraints remain.",
+ keyIdea:"Out-of-order execution finds parallel work by separating physical value versions from architectural names while preserving true data flow and ordered retirement.",
+ commonMistake:"Thinking register renaming removes all dependencies or that out-of-order completion means out-of-order architectural commitment.",
+ interviewLadder:[
+  {level:"definition",q:"What is instruction-level parallelism?",a:"The ability to overlap or execute multiple independent instructions concurrently."},
+  {level:"mechanism",q:"How does register renaming help?",a:"It maps architectural names to physical versions, eliminating false WAR/WAW name dependencies."},
+  {level:"trade-off",q:"Why does a reorder buffer retire in order?",a:"It maintains precise architectural state and supports recovery from exceptions and mispredictions."},
+  {level:"systems",q:"What limits out-of-order execution?",a:"True dependencies, memory ordering, issue width, queue capacity, functional units, and the area/power cost of scheduling structures."}
+ ]
+};
