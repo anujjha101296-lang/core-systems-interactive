@@ -6,8 +6,8 @@ import { lessonStatus } from "@/lib/progress";
 import { routeTree } from "@/routeTree.gen";
 
 describe("tracks", () => {
-  it("registers Digital Logic with 18 planned lessons and Architecture with 14", () => {
-    expect(tracks["digital-logic"].planned).toBe(18);
+  it("registers Digital Logic with 19 planned lessons and Architecture with 14", () => {
+    expect(tracks["digital-logic"].planned).toBe(19);
     expect(tracks.architecture.planned).toBe(14);
   });
   it("empty track progress is 0, never NaN", () => {
