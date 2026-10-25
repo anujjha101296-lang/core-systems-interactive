@@ -27,7 +27,7 @@ export function simulateCachePolicies(config:CachePolicyConfig,trace:{address:nu
   else {
    misses++;
    const allocate=a.op!=="W"||config.writeMiss==="write-allocate";
-   if(a.op==="W"&&config.write==="write-through") memoryWrite=true;
+   if(a.op==="W"&&(config.write==="write-through"||!allocate)) memoryWrite=true;
    if(allocate){
     if(ways.length>=config.ways){
      const victim=ways.reduce((best,x)=>config.replacement==="LRU"?(x.used<best.used?x:best):(x.inserted<best.inserted?x:best));
