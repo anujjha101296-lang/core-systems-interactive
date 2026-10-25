@@ -10,7 +10,7 @@ describe("cache replacement and write policies",()=>{
   expect(fifo.misses).toBe(4);
  });
  it("marks write-back stores dirty and writes dirty victims back",()=>{
-  const r=simulateCachePolicies(config,[{op:"W",address:0},{op:"W",address:16},{op:"R",address:32}]);
+  const r=simulateCachePolicies(config,[{op:"W",address:0},{op:"W",address:64},{op:"R",address:128}]);
   expect(r.dirtyWritebacks).toBe(1);
   expect(r.evictions).toBe(1);
  });
