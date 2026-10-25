@@ -6,7 +6,7 @@ describe("cache replacement and write policies",()=>{
   const trace=[{op:"R" as const,address:0},{op:"R" as const,address:16},{op:"R" as const,address:0},{op:"R" as const,address:32},{op:"R" as const,address:16},{op:"R" as const,address:0}];
   const lru=simulateCachePolicies({...config,capacityBytes:32,ways:2,replacement:"LRU"},trace);
   const fifo=simulateCachePolicies({...config,capacityBytes:32,ways:2,replacement:"FIFO"},trace);
-  expect(lru.misses).toBe(4);
+  expect(lru.misses).toBe(5);
   expect(fifo.misses).toBe(4);
  });
  it("marks write-back stores dirty and writes dirty victims back",()=>{
