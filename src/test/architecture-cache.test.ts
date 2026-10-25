@@ -66,3 +66,11 @@ describe("cache mapping and AMAT",()=>{
   expect(labIndex.some(l=>l.id==="archcapstone"&&l.track==="architecture")).toBe(true);
  });
 });
+
+\ndescribe("cache replacement and write policy lesson", () => {
+ it("registers the lesson and lab", () => {
+  expect(tracks.architecture.lessons.map(l=>l.slug)).toContain("cache-replacement-write-policies");
+  expect(getLesson("architecture","cache-replacement-write-policies")?.checks).toHaveLength(6);
+  expect(labIndex.some(l=>l.id==="archcachepolicies"&&l.track==="architecture")).toBe(true);
+ });
+});
